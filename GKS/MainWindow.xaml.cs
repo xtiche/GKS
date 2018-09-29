@@ -126,7 +126,7 @@ namespace GKS
                             details[iter].Add(44);
                             break;
                     }
-                    if (listOfUnequeOperations.FindIndex(x=>x == s) == -1)
+                    if (listOfUnequeOperations.FindIndex(x => x == s) == -1)
                     {
                         listOfUnequeOperations.Add(s);
                     }
@@ -134,13 +134,53 @@ namespace GKS
                 iter++;
             }
 
+            #region CreateHelpMatrix
+            int[,] helpMatrix = new int[cntFields, cntFields];
 
+            for (int i = 1; i < cntFields; i++)
+            {
+                for (int j = 0; j < i; j++)
+                {
+                    int cntDifElements = 0;
+                    foreach (int item in details[j])
+                    {
+                        if (details[i].FindIndex(x => x == item) == -1)
+                        {
+                            cntDifElements++;
+                        }
+                    }
+                    foreach (int item in details[i])
+                    {
+                        if (details[j].FindIndex(x => x == item) == -1)
+                        {
+                            cntDifElements++;
+                        }
+                    }
+                    helpMatrix[i, j] = listOfUnequeOperations.Count() - cntDifElements;
+                }
+            }
+            #endregion
+
+            
 
             #region OutInTextBlock
-            tbOut.Text = listOfUnequeOperations.Count().ToString()+"\n";
+            tbOut.Text += "Help matrix:\n";
             for (int i = 0; i < cntFields; i++)
             {
-                foreach(int value in details[i])
+                for (int j = 0; j < cntFields; j++)
+                {
+                    tbOut.Text += helpMatrix[i, j] + " ";
+                }
+                tbOut.Text += "\n";
+            }
+
+            tbOut.Text += "Max element of help matrix: " + details.Max() + "\n";
+
+
+            tbOut.Text += "Count of unique elements: " + listOfUnequeOperations.Count().ToString() + "\n";
+            for (int i = 0; i < cntFields; i++)
+            {
+                foreach (int value in details[i])
                 {
                     tbOut.Text += value + " ";
                 }
