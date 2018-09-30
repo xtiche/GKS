@@ -15,9 +15,6 @@ using System.Windows.Shapes;
 
 namespace GKS
 {
-    /// <summary>
-    /// Логика взаимодействия для MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public MainWindow()
@@ -49,9 +46,9 @@ namespace GKS
             }
 
         }
+
         public void Calc(object sender, RoutedEventArgs e)
         {
-            //MessageBox.Show("Test");
             int cntFields = Convert.ToInt32(tbCntFields.Text);
 
             List<int>[] details = new List<int>[cntFields];
@@ -85,6 +82,9 @@ namespace GKS
                             break;
                         case "T4":
                             details[iter].Add(14);
+                            break;
+                        case "T5":
+                            details[iter].Add(15);
                             break;
 
                         case "C1":
@@ -136,7 +136,7 @@ namespace GKS
 
             #region OutInTextBlock
 
-
+            tbOut.Text = "Count of unique elements: " + listOfUnequeOperations.Count().ToString() + "\n";
             //tbOut.Text += "Max element of help matrix: " + details.Max() + "\n";
             /*
             for (int i = 0; i < cntFields; i++)
@@ -148,10 +148,11 @@ namespace GKS
                 tbOut.Text += "\n";
             }
             */
-            tbOut.Text += "Count of unique elements: " + listOfUnequeOperations.Count().ToString() + "\n";
+
             #endregion
 
             #region CreateHelpMatrix
+            
             int[,] helpMatrix = new int[cntFields, cntFields];
 
             for (int i = 1; i < cntFields; i++)
@@ -176,29 +177,17 @@ namespace GKS
                     helpMatrix[i, j] = listOfUnequeOperations.Count() - cntDifElements;
                 }
             }
+            
             #endregion
-            /*
-            int[,] helpMatrix = new int[,] { {0,0,0,0,0 },
+
+            /*int[,] helpMatrix = new int[,] { {0,0,0,0,0 },
                                              {3,0,0,0,0 },
                                              {2,5,0,0,0 },
                                              {4,5,3,0,0 },
-                                             {3,5,4,5,0 } };*/
-
-            #region OutputHelpMatrix
-
-            tbOut.Text += "Help matrix:\n";
-            for (int i = 0; i < cntFields; i++)
-            {
-                for (int j = 0; j < cntFields; j++)
-                {
-                    tbOut.Text += helpMatrix[i, j] + " ";
-                }
-                tbOut.Text += "\n";
-            }
-            
-            #endregion
-            
-
+                                             {3,4,4,5,0 } };
+            */
+            PrintHelpMatrixInTB(helpMatrix, cntFields);
+         
             #region CreateGroup
             List<int>[] groups = new List<int>[1];
 
@@ -212,7 +201,7 @@ namespace GKS
                 int maxValue = 0;
                 List<int> maxI = new List<int>();
                 List<int> maxJ = new List<int>();
-
+                //fing max values
                 for (int i = 1; i < cntFields; i++)
                 {
                     for (int j = 0; j < i; j++)
@@ -229,24 +218,15 @@ namespace GKS
                         if ((helpMatrix[i, j] == maxValue) &&
                             (
                             (maxI.FindIndex(x => x == i) != -1) ||
-                            (maxJ.FindIndex(x => x == j) != -1)
+                            (maxJ.FindIndex(x => x == j) != -1) ||
+                            (maxI.FindIndex(x => x == j) != -1) ||
+                            (maxJ.FindIndex(x => x == i) != -1)
                             ))
                         {
                             maxI.Add(i);
                             maxJ.Add(j);
                         }
                     }
-                }
-
-                //output help matrix
-                tbOut.Text += "Help matrix:\n";
-                for (int i = 0; i < cntFields; i++)
-                {
-                    for (int j = 0; j < cntFields; j++)
-                    {
-                        tbOut.Text += helpMatrix[i, j] + " ";
-                    }
-                    tbOut.Text += "\n";
                 }
 
                 //clear help matrix
@@ -284,7 +264,7 @@ namespace GKS
             #endregion
 
             #region OutputGroups
-            tbOut.Text += "\n Groups:\n";
+            tbOut.Text += "\n Groups:";
             for (int i = 0; i < groups.Length - 1; i++)
             {
                 tbOut.Text += "\n " + i + " - { ";
@@ -296,23 +276,7 @@ namespace GKS
             }
             #endregion
 
-            #region OutInTextBlock
-
-
-            //tbOut.Text += "Max element of help matrix: " + details.Max() + "\n";
-            /*
-            for (int i = 0; i < cntFields; i++)
-            {
-                foreach (int value in details[i])
-                {
-                    tbOut.Text += value + " ";
-                }
-                tbOut.Text += "\n";
-            }
-            */
-            tbOut.Text += "Count of unique elements: " + listOfUnequeOperations.Count().ToString() + "\n";
-            #endregion
-
+          
         }
 
         public int SumOfAllElements(int[,] array, int size)
@@ -332,6 +296,20 @@ namespace GKS
                     return true;
 
             return false;
+        }
+        
+        public void PrintHelpMatrixInTB(int [,] helpMatrix, int cntFields)
+        {
+            tbOut.Text += "Help matrix:\n";
+            for (int i = 0; i < cntFields; i++)
+            {
+                for (int j = 0; j < cntFields; j++)
+                {
+                    tbOut.Text += helpMatrix[i, j] + " ";
+                }
+                tbOut.Text += "\n";
+            }
+
         }
     }
 }
