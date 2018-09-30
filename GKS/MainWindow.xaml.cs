@@ -152,7 +152,7 @@ namespace GKS
             #endregion
 
             #region CreateHelpMatrix
-            
+
             int[,] helpMatrix = new int[cntFields, cntFields];
 
             for (int i = 1; i < cntFields; i++)
@@ -177,7 +177,7 @@ namespace GKS
                     helpMatrix[i, j] = listOfUnequeOperations.Count() - cntDifElements;
                 }
             }
-            
+
             #endregion
 
             /*int[,] helpMatrix = new int[,] { {0,0,0,0,0 },
@@ -187,7 +187,7 @@ namespace GKS
                                              {3,4,4,5,0 } };
             */
             PrintHelpMatrixInTB(helpMatrix, cntFields);
-         
+
             #region CreateGroup
             List<int>[] groups = new List<int>[1];
 
@@ -260,14 +260,15 @@ namespace GKS
                 iterator++;
 
             }
+            Array.Resize(ref groups, groups.Length - 1);
 
             #endregion
 
             #region OutputGroups
             tbOut.Text += "\n Groups:";
-            for (int i = 0; i < groups.Length - 1; i++)
+            for (int i = 0; i < groups.Length; i++)
             {
-                tbOut.Text += "\n " + i + " - { ";
+                tbOut.Text += "\n " + (i + 1) + " - { ";
                 foreach (var item in groups[i])
                 {
                     tbOut.Text += (item + 1) + " ";
@@ -276,7 +277,89 @@ namespace GKS
             }
             #endregion
 
-          
+            #region ClaryfingTheContentOfGroups
+
+            List<int> blockDetails = new List<int>();
+
+            for (int j = 0; j < groups.Length - 1; j++)
+            {
+
+                //tbOut.Text += "\nValues \n";
+                int maxLenght = 0;
+                int maxRow = 0;
+                for (int i = j; i < groups.Length; i++)
+                {
+                    int count = 0;
+                    foreach (var detailId in groups[i])
+                    {
+                        //tbOut.Text += detailId + " ";
+                        count += details[detailId].Count();
+                    }
+                    //tbOut.Text += "Count : " + count + "\n";
+                    if (maxLenght < count)
+                    {
+                        maxLenght = count;
+                        maxRow = i;
+                    }
+                }
+
+                //change position of longest group;
+                List<int> tmp = groups[maxRow];
+                groups[maxRow] = groups[j];
+                groups[j] = tmp;
+                
+                for (int i = j; i < details.Length; i++)
+                {
+                    if (groups[j].FindIndex(x => x == i) == -1
+                        &&
+                        blockDetails.FindIndex(x => x == i) == -1)
+                    {
+                        int cntSameOperations = 0;
+                        foreach (var operation in details[i])
+                        {
+                            foreach (var idDetail in groups[j])
+                            {
+
+                                if (details[idDetail].FindIndex(x => x == operation) != -1)
+                                {
+                                    cntSameOperations++;
+                                    break;
+                                }
+
+                            }
+                        }
+                        if (details[i].Count == cntSameOperations)
+                        {
+                            foreach (var item in groups)
+                                if (item.FindIndex(x => x == i) != -1)
+                                    item.Remove(i);
+                            groups[j].Add(i);
+                        }
+                    }
+                }
+
+                foreach(var item in groups[j])             
+                    blockDetails.Add(item);
+                
+            }
+            #endregion
+
+            tbOut.Text += "\n\nNewGroup:";
+            #region OutputGroups
+            tbOut.Text += "\n Groups:";
+            for (int i = 0; i < groups.Length; i++)
+            {
+                tbOut.Text += "\n " + (i + 1) + " - { ";
+                foreach (var item in groups[i])
+                {
+                    tbOut.Text += (item + 1) + " ";
+                }
+                tbOut.Text += "}";
+            }
+            #endregion
+
+
+
         }
 
         public int SumOfAllElements(int[,] array, int size)
@@ -297,19 +380,25 @@ namespace GKS
 
             return false;
         }
-        
-        public void PrintHelpMatrixInTB(int [,] helpMatrix, int cntFields)
+
+        public void PrintHelpMatrixInTB(int[,] helpMatrix, int cntFields)
         {
             tbOut.Text += "Help matrix:\n";
             for (int i = 0; i < cntFields; i++)
             {
                 for (int j = 0; j < cntFields; j++)
                 {
-                    tbOut.Text += helpMatrix[i, j] + " ";
+                    tbOut.Text += helpMatrix[i, j] + "\t";
                 }
                 tbOut.Text += "\n";
             }
 
         }
+        /*
+        public int CntOfOperationInGroup(int indexOfRow, List<int>[] details)
+        {
+            int count
+            foreach
+        }*/
     }
 }
