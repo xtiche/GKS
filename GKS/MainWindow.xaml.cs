@@ -164,25 +164,29 @@ namespace GKS
             
 
             #region OutInTextBlock
+
+
+            //tbOut.Text += "Max element of help matrix: " + details.Max() + "\n";
+
+
+            /*
+            for (int i = 0; i < cntFields; i++)
+            {
+                foreach (int value in details[i])
+                {
+                    tbOut.Text += value + " ";
+                }
+                tbOut.Text += "\n";
+            }*/
+
+            tbOut.Text += "Count of unique elements: " + listOfUnequeOperations.Count().ToString() + "\n";
+
             tbOut.Text += "Help matrix:\n";
             for (int i = 0; i < cntFields; i++)
             {
                 for (int j = 0; j < cntFields; j++)
                 {
                     tbOut.Text += helpMatrix[i, j] + " ";
-                }
-                tbOut.Text += "\n";
-            }
-
-            tbOut.Text += "Max element of help matrix: " + details.Max() + "\n";
-
-
-            tbOut.Text += "Count of unique elements: " + listOfUnequeOperations.Count().ToString() + "\n";
-            for (int i = 0; i < cntFields; i++)
-            {
-                foreach (int value in details[i])
-                {
-                    tbOut.Text += value + " ";
                 }
                 tbOut.Text += "\n";
             }
