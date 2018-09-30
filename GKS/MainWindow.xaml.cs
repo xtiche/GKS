@@ -134,6 +134,23 @@ namespace GKS
                 iter++;
             }
 
+            #region OutInTextBlock
+
+
+            //tbOut.Text += "Max element of help matrix: " + details.Max() + "\n";
+            /*
+            for (int i = 0; i < cntFields; i++)
+            {
+                foreach (int value in details[i])
+                {
+                    tbOut.Text += value + " ";
+                }
+                tbOut.Text += "\n";
+            }
+            */
+            tbOut.Text += "Count of unique elements: " + listOfUnequeOperations.Count().ToString() + "\n";
+            #endregion
+
             #region CreateHelpMatrix
             int[,] helpMatrix = new int[cntFields, cntFields];
 
@@ -160,26 +177,14 @@ namespace GKS
                 }
             }
             #endregion
-
-            
-
-            #region OutInTextBlock
-
-
-            //tbOut.Text += "Max element of help matrix: " + details.Max() + "\n";
-
-
             /*
-            for (int i = 0; i < cntFields; i++)
-            {
-                foreach (int value in details[i])
-                {
-                    tbOut.Text += value + " ";
-                }
-                tbOut.Text += "\n";
-            }*/
+            int[,] helpMatrix = new int[,] { {0,0,0,0,0 },
+                                             {3,0,0,0,0 },
+                                             {2,5,0,0,0 },
+                                             {4,5,3,0,0 },
+                                             {3,5,4,5,0 } };*/
 
-            tbOut.Text += "Count of unique elements: " + listOfUnequeOperations.Count().ToString() + "\n";
+            #region OutputHelpMatrix
 
             tbOut.Text += "Help matrix:\n";
             for (int i = 0; i < cntFields; i++)
@@ -190,8 +195,143 @@ namespace GKS
                 }
                 tbOut.Text += "\n";
             }
+            
+            #endregion
+            
+
+            #region CreateGroup
+            List<int>[] groups = new List<int>[1];
+
+            //find group
+
+            int iterator = 0;
+            while (SumOfAllElements(helpMatrix, cntFields) != 0)
+            {
+                groups[iterator] = new List<int>();
+
+                int maxValue = 0;
+                List<int> maxI = new List<int>();
+                List<int> maxJ = new List<int>();
+
+                for (int i = 1; i < cntFields; i++)
+                {
+                    for (int j = 0; j < i; j++)
+                    {
+
+                        if (helpMatrix[i, j] > maxValue)
+                        {
+                            maxI.Clear();
+                            maxJ.Clear();
+                            maxValue = helpMatrix[i, j];
+                            maxI.Add(i);
+                            maxJ.Add(j);
+                        }
+                        if ((helpMatrix[i, j] == maxValue) &&
+                            (
+                            (maxI.FindIndex(x => x == i) != -1) ||
+                            (maxJ.FindIndex(x => x == j) != -1)
+                            ))
+                        {
+                            maxI.Add(i);
+                            maxJ.Add(j);
+                        }
+                    }
+                }
+
+                //output help matrix
+                tbOut.Text += "Help matrix:\n";
+                for (int i = 0; i < cntFields; i++)
+                {
+                    for (int j = 0; j < cntFields; j++)
+                    {
+                        tbOut.Text += helpMatrix[i, j] + " ";
+                    }
+                    tbOut.Text += "\n";
+                }
+
+                //clear help matrix
+                for (int i = 1; i < cntFields; i++)
+                {
+                    for (int j = 0; j < i; j++)
+                    {
+                        if (
+                            (maxI.FindIndex(x => x == i) != -1) ||
+                            (maxJ.FindIndex(x => x == j) != -1)
+                            )
+                        {
+                            helpMatrix[i, j] = 0;
+                        }
+                    }
+                }
+
+
+                foreach (var item in maxI)
+                    if (groups[iterator].FindIndex(x => x == item) == -1
+                        && !FindElement(groups, iterator, item)
+                        )
+                        groups[iterator].Add(item);
+                foreach (var item in maxJ)
+                    if (groups[iterator].FindIndex(x => x == item) == -1
+                        && !FindElement(groups, iterator, item)
+                        )
+                        groups[iterator].Add(item);
+
+                Array.Resize(ref groups, groups.Length + 1);
+                iterator++;
+
+            }
+
             #endregion
 
+            #region OutputGroups
+            tbOut.Text += "\n Groups:\n";
+            for (int i = 0; i < groups.Length - 1; i++)
+            {
+                tbOut.Text += "\n " + i + " - { ";
+                foreach (var item in groups[i])
+                {
+                    tbOut.Text += (item + 1) + " ";
+                }
+                tbOut.Text += "}";
+            }
+            #endregion
+
+            #region OutInTextBlock
+
+
+            //tbOut.Text += "Max element of help matrix: " + details.Max() + "\n";
+            /*
+            for (int i = 0; i < cntFields; i++)
+            {
+                foreach (int value in details[i])
+                {
+                    tbOut.Text += value + " ";
+                }
+                tbOut.Text += "\n";
+            }
+            */
+            tbOut.Text += "Count of unique elements: " + listOfUnequeOperations.Count().ToString() + "\n";
+            #endregion
+
+        }
+
+        public int SumOfAllElements(int[,] array, int size)
+        {
+            int sum = 0;
+            for (int i = 0; i < size; i++)
+                for (int j = 0; j < size; j++)
+                    sum += array[i, j];
+            return sum;
+        }
+
+        public bool FindElement(List<int>[] array, int size, int findValue)
+        {
+
+            for (int i = 0; i < size; i++)
+                if (array[i].FindIndex(x => x == findValue) != -1)
+                    return true;
+
+            return false;
         }
     }
 }

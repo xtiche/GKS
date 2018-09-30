@@ -52,8 +52,10 @@
                 </TextBox>
             </StackPanel>
         </GroupBox>
-        <TextBlock Grid.Column="2" Grid.RowSpan="2" Padding="20" x:Name="tbOut">
-            
-        </TextBlock>
+        <ScrollViewer Grid.Column="2" Grid.RowSpan="2">
+            <TextBlock  Padding="20" x:Name="tbOut">
+
+            </TextBlock>
+        </ScrollViewer>
     </Grid>
 </Window>
