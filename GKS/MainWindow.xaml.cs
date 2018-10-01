@@ -264,18 +264,8 @@ namespace GKS
 
             #endregion
 
-            #region OutputGroups
             tbOut.Text += "\n Groups:";
-            for (int i = 0; i < groups.Length; i++)
-            {
-                tbOut.Text += "\n " + (i + 1) + " - { ";
-                foreach (var item in groups[i])
-                {
-                    tbOut.Text += (item + 1) + " ";
-                }
-                tbOut.Text += "}";
-            }
-            #endregion
+            PrintGroups(groups);
 
             #region ClaryfingTheContentOfGroups
 
@@ -283,32 +273,37 @@ namespace GKS
 
             for (int j = 0; j < groups.Length - 1; j++)
             {
-
                 //tbOut.Text += "\nValues \n";
                 int maxLenght = 0;
                 int maxRow = 0;
+                List<int> uniqueElementInMainGroup = new List<int>();
                 for (int i = j; i < groups.Length; i++)
                 {
-                    int count = 0;
+                    List<int> temp = new List<int>();
                     foreach (var detailId in groups[i])
                     {
+                        foreach (var operation in details[detailId])
+                        {
+                            if (temp.FindIndex(x => x == operation) == -1)
+                                temp.Add(operation);
+                        }
                         //tbOut.Text += detailId + " ";
-                        count += details[detailId].Count();
                     }
-                    //tbOut.Text += "Count : " + count + "\n";
-                    if (maxLenght < count)
+                    //tbOut.Text += "Count : " + temp.Count() + "\n";
+                    if (maxLenght < temp.Count())
                     {
-                        maxLenght = count;
+                        maxLenght = temp.Count();
                         maxRow = i;
+                        uniqueElementInMainGroup = temp;
                     }
                 }
 
-                //change position of longest group;
+                //sort groups;
                 List<int> tmp = groups[maxRow];
                 groups[maxRow] = groups[j];
                 groups[j] = tmp;
-                
-                for (int i = j; i < details.Length; i++)
+
+                for (int i = 0; i < details.Length; i++)
                 {
                     if (groups[j].FindIndex(x => x == i) == -1
                         &&
@@ -317,16 +312,8 @@ namespace GKS
                         int cntSameOperations = 0;
                         foreach (var operation in details[i])
                         {
-                            foreach (var idDetail in groups[j])
-                            {
-
-                                if (details[idDetail].FindIndex(x => x == operation) != -1)
-                                {
-                                    cntSameOperations++;
-                                    break;
-                                }
-
-                            }
+                            if(uniqueElementInMainGroup.FindIndex(x => x == operation) != -1)
+                                cntSameOperations++;
                         }
                         if (details[i].Count == cntSameOperations)
                         {
@@ -338,28 +325,14 @@ namespace GKS
                     }
                 }
 
-                foreach(var item in groups[j])             
+                foreach (var item in groups[j])
                     blockDetails.Add(item);
-                
+
             }
             #endregion
 
             tbOut.Text += "\n\nNewGroup:";
-            #region OutputGroups
-            tbOut.Text += "\n Groups:";
-            for (int i = 0; i < groups.Length; i++)
-            {
-                tbOut.Text += "\n " + (i + 1) + " - { ";
-                foreach (var item in groups[i])
-                {
-                    tbOut.Text += (item + 1) + " ";
-                }
-                tbOut.Text += "}";
-            }
-            #endregion
-
-
-
+            PrintGroups(groups);
         }
 
         public int SumOfAllElements(int[,] array, int size)
@@ -373,11 +346,9 @@ namespace GKS
 
         public bool FindElement(List<int>[] array, int size, int findValue)
         {
-
             for (int i = 0; i < size; i++)
                 if (array[i].FindIndex(x => x == findValue) != -1)
                     return true;
-
             return false;
         }
 
@@ -387,18 +358,20 @@ namespace GKS
             for (int i = 0; i < cntFields; i++)
             {
                 for (int j = 0; j < cntFields; j++)
-                {
                     tbOut.Text += helpMatrix[i, j] + "\t";
-                }
                 tbOut.Text += "\n";
             }
-
         }
-        /*
-        public int CntOfOperationInGroup(int indexOfRow, List<int>[] details)
+
+        public void PrintGroups(List<int>[] groups)
         {
-            int count
-            foreach
-        }*/
+            for (int i = 0; i < groups.Length; i++)
+            {
+                tbOut.Text += "\n " + (i + 1) + " - { ";
+                foreach (var item in groups[i])
+                    tbOut.Text += (item + 1) + " ";
+                tbOut.Text += "}";
+            }
+        }
     }
 }
