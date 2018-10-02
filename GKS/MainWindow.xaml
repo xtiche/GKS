@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GKS"
         mc:Ignorable="d"
-        Title="MainWindow" Height="308" Width="515"
+        Title="MainWindow" Height="300" Width="520"
         MinWidth="400">
     <Grid x:Name="mainGrid">
         <Grid.RowDefinitions>
@@ -13,18 +13,18 @@
             <RowDefinition />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0.6*" MinWidth="165"/>
+            <ColumnDefinition Width="0.6*" MinWidth="165" MaxWidth="230"/>
             <ColumnDefinition Width="0.7*"/>
         </Grid.ColumnDefinitions>
 
 
-        <Button Grid.Column="0" Grid.Row="0" Content="Посчитать матрицу" Margin="100,10,10,10"
+        <Button Grid.Column="0" Grid.Row="0" Content="Посчитать матрицу" Margin="85,10,5,10"
                 Click="Calc"/>
         <TextBlock Grid.Column="0" Grid.Row="1"  Margin="10 0 0 0">
                     Заполните поля значениями через " ".
         </TextBlock>
         <GroupBox Grid.Row="1" Grid.Column="0" Header="Ввод операций" Margin="0 20 0 0" x:Name="gbValue">
-            <RichTextBox x:Name="rtb">
+            <RichTextBox x:Name="rtb" Margin="3">
                 <FlowDocument>
                     <Paragraph>
                         T1 T2 C1 C2

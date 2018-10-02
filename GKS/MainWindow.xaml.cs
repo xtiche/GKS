@@ -54,7 +54,7 @@ namespace GKS
             if (cntFields > 5)
                 this.Width = this.Width + (cntFields - 5) * 75;
             else
-                this.Width = 515;
+                this.Width = 520;
 
             List<string>[] details = new List<string>[cntFields];
             for (int i = 0; i < cntFields; i++)
@@ -256,8 +256,8 @@ namespace GKS
                                 {
                                     int cntSameOperations = 0;
                                     foreach (var operation in details[i])
-                                        if (FindUniqueOperationInGroup(groups[i], details).FindIndex(x => x == operation) != -1)                                     
-                                            cntSameOperations++;  
+                                        if (FindUniqueOperationInGroup(groups[i], details).FindIndex(x => x == operation) != -1)
+                                            cntSameOperations++;
 
                                     if (details[i].Count == cntSameOperations)
                                         cntDetail++;
@@ -291,7 +291,7 @@ namespace GKS
                     {
                         int cntSameOperations = 0;
                         foreach (var operation in details[i])
-                            if(FindUniqueOperationInGroup(groups[j],details).FindIndex(x=>x == operation) != -1)                       
+                            if (FindUniqueOperationInGroup(groups[j], details).FindIndex(x => x == operation) != -1)
                                 cntSameOperations++;
 
                         if (details[i].Count == cntSameOperations)
@@ -332,8 +332,51 @@ namespace GKS
 
             #region Creating Graph/Matrix
 
+            List<int[,]> listOfAdjacencyMatrix = new List<int[,]>();
 
+            tbOut.Text += "\n\nMatrix for groups:\n\n";
 
+            foreach (var group in updateGroups)
+            {
+                List<string> uniqueOperationForGroup = FindUniqueOperationInGroup(group, details);
+                int cntUniqueOperations = uniqueOperationForGroup.Count;
+                int[,] adjacencyMatrix = new int[cntUniqueOperations, cntUniqueOperations];
+                foreach (var detailId in group)
+                {
+                    string[] operation = details[detailId].ToArray();
+                    int cntOperationInDetail = operation.Length;
+                    for (int i = 1; i < cntOperationInDetail; i++)
+                    {
+                        int trackIndex = uniqueOperationForGroup.FindIndex(x => x == operation[i]);
+                        int prevIndex = uniqueOperationForGroup.FindIndex(x => x == operation[i - 1]);
+                        adjacencyMatrix[prevIndex, trackIndex] = 1;
+                    }
+                }
+
+                listOfAdjacencyMatrix.Add(adjacencyMatrix);
+
+                #region Print Matrix
+
+                tbOut.Text += "\n\t";
+                for (int i = 0; i < cntUniqueOperations; i++)
+                {
+                    string[] operation = uniqueOperationForGroup.ToArray();
+                    tbOut.Text += operation[i] + "\t";
+                }
+                tbOut.Text += "\n";
+
+                for (int i = 0; i < cntUniqueOperations; i++)
+                {
+                    string[] operation = uniqueOperationForGroup.ToArray();
+                    tbOut.Text += operation[i] + "\t";
+                    for (int j = 0; j < cntUniqueOperations; j++)
+                        tbOut.Text += adjacencyMatrix[i, j] + "\t";
+                    tbOut.Text += "\n";
+                }
+
+                #endregion
+
+            }
 
             #endregion
 
@@ -382,12 +425,13 @@ namespace GKS
         public List<string> FindUniqueOperationInGroup(List<int> detailsInGroup, List<string>[] details)
         {
             List<string> uniqueOperationList = new List<string>();
-            foreach(var detailId in detailsInGroup)
-                foreach(var operation in details[detailId])
-                    if(uniqueOperationList.FindIndex(x=>x == operation) == -1)
+            foreach (var detailId in detailsInGroup)
+                foreach (var operation in details[detailId])
+                    if (uniqueOperationList.FindIndex(x => x == operation) == -1)
                         uniqueOperationList.Add(operation);
 
             return uniqueOperationList;
         }
+
     }
 }
