@@ -18,7 +18,7 @@
         </Grid.ColumnDefinitions>
 
 
-        <Button Grid.Column="0" Grid.Row="0" Content="Посчитать матрицу" Margin="10"
+        <Button Grid.Column="0" Grid.Row="0" Content="Посчитать матрицу" Margin="100,10,10,10"
                 Click="Calc"/>
         <TextBlock Grid.Column="0" Grid.Row="1"  Margin="10 0 0 0">
                     Заполните поля значениями через " ".
@@ -48,10 +48,11 @@
         </GroupBox>
         <ScrollViewer Grid.Column="1" Grid.RowSpan="2">
             <GroupBox Header="Вывод данных">
-            <TextBlock  Padding="20" x:Name="tbOut">
+                <TextBlock  Padding="20" x:Name="tbOut">
 
-            </TextBlock>
+                </TextBlock>
             </GroupBox>
         </ScrollViewer>
+        <Button Content="Файл" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="70" Height="40" Click="InsertValuesFromFile"/>
     </Grid>
 </Window>

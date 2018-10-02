@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using Microsoft.Win32;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,6 +22,22 @@ namespace GKS
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        public void InsertValuesFromFile(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Filter = "All files (*.*)|*.*";
+
+            if (ofd.ShowDialog() == true)
+            {
+                TextRange doc = new TextRange(rtb.Document.ContentStart, rtb.Document.ContentEnd);
+                using (FileStream fs = new FileStream(ofd.FileName, FileMode.Open))
+                {
+                    if (System.IO.Path.GetExtension(ofd.FileName).ToLower() == ".txt")
+                        doc.Load(fs, DataFormats.Text);
+                }
+            }
         }
 
         public void Calc(object sender, RoutedEventArgs e)
@@ -247,8 +265,16 @@ namespace GKS
                                 {
                                     int cntSameOperations = 0;
                                     foreach (var operation in details[i])
-                                        if (uniqueOperationsInMainGroup.FindIndex(x => x == operation) != -1)
-                                            cntSameOperations++;
+                                    {
+                                        foreach (var idDetail in groups[i])
+                                        {
+                                            if (details[idDetail].FindIndex(x => x == operation) != -1)
+                                            {
+                                                cntSameOperations++;
+                                                break;
+                                            }
+                                        }
+                                    }
 
                                     if (details[i].Count == cntSameOperations)
                                         cntDetail++;
