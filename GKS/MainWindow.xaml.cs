@@ -22,110 +22,30 @@ namespace GKS
             InitializeComponent();
         }
 
-        public void DrawNewFields(object sender, RoutedEventArgs e)
-        {
-            //MessageBox.Show("Test");
-            try
-            {
-                spValue.Children.Clear();
-                int cntFields = Convert.ToInt32(tbCntFields.Text);
-
-                this.Height = 140 + cntFields * 30;
-                for (int i = 0; i < cntFields; i++)
-                {
-                    TextBox tb = new TextBox();
-                    tb.HorizontalAlignment = HorizontalAlignment.Left;
-                    tb.Margin = new Thickness(5);
-                    tb.MinWidth = 200;
-                    spValue.Children.Add(tb);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString());
-            }
-
-        }
-
         public void Calc(object sender, RoutedEventArgs e)
         {
-            int cntFields = Convert.ToInt32(tbCntFields.Text);
 
-            List<int>[] details = new List<int>[cntFields];
+            string rtbText = new TextRange(rtb.Document.ContentStart,
+                                           rtb.Document.ContentEnd).Text;
+
+            List<string> listOfOperaions = rtbText.Split(new[] { Environment.NewLine },
+                                                         StringSplitOptions.RemoveEmptyEntries).ToList();
+
+            int cntFields = listOfOperaions.Count();
+
+            List<string>[] details = new List<string>[cntFields];
             for (int i = 0; i < cntFields; i++)
-                details[i] = new List<int>();
-            List<string> listOfOperaions = new List<string>();
-            foreach (Object o in spValue.Children)
-            {
-                TextBox tb = (TextBox)o;
-                listOfOperaions.Add(tb.Text);
-            }
+                details[i] = new List<string>();
 
             List<string> listOfUnequeOperations = new List<string>();
 
             int iter = 0;
             foreach (string strOfOperation in listOfOperaions)
             {
+                details[iter] = strOfOperation.Split(new char[] { ' ' }).ToList();
                 string[] words = strOfOperation.Split(new char[] { ' ' });
-                foreach (string s in words)
+                foreach (string s in details[iter])
                 {
-                    switch (s)
-                    {
-                        case "T1":
-                            details[iter].Add(11);
-                            break;
-                        case "T2":
-                            details[iter].Add(12);
-                            break;
-                        case "T3":
-                            details[iter].Add(13);
-                            break;
-                        case "T4":
-                            details[iter].Add(14);
-                            break;
-                        case "T5":
-                            details[iter].Add(15);
-                            break;
-
-                        case "C1":
-                            details[iter].Add(21);
-                            break;
-                        case "C2":
-                            details[iter].Add(22);
-                            break;
-                        case "C3":
-                            details[iter].Add(23);
-                            break;
-                        case "C4":
-                            details[iter].Add(24);
-                            break;
-
-                        case "P1":
-                            details[iter].Add(31);
-                            break;
-                        case "P2":
-                            details[iter].Add(32);
-                            break;
-                        case "P3":
-                            details[iter].Add(33);
-                            break;
-                        case "P4":
-                            details[iter].Add(34);
-                            break;
-
-                        case "F1":
-                            details[iter].Add(41);
-                            break;
-                        case "F2":
-                            details[iter].Add(42);
-                            break;
-                        case "F3":
-                            details[iter].Add(43);
-                            break;
-                        case "F4":
-                            details[iter].Add(44);
-                            break;
-                    }
                     if (listOfUnequeOperations.FindIndex(x => x == s) == -1)
                     {
                         listOfUnequeOperations.Add(s);
@@ -160,14 +80,14 @@ namespace GKS
                 for (int j = 0; j < i; j++)
                 {
                     int cntDifElements = 0;
-                    foreach (int item in details[j])
+                    foreach (string item in details[j])
                     {
                         if (details[i].FindIndex(x => x == item) == -1)
                         {
                             cntDifElements++;
                         }
                     }
-                    foreach (int item in details[i])
+                    foreach (string item in details[i])
                     {
                         if (details[j].FindIndex(x => x == item) == -1)
                         {
@@ -281,10 +201,10 @@ namespace GKS
                 int maxRow = 0;
                 int cntMaxGroup = 0;
                 List<int> indexMaxGroup = new List<int>();
-                List<int> uniqueOperationsInMainGroup = new List<int>();
+                List<string> uniqueOperationsInMainGroup = new List<string>();
                 for (int i = j; i < groups.Length; i++)
                 {
-                    List<int> temp = new List<int>();
+                    List<string> temp = new List<string>();
                     foreach (var detailId in groups[i])
                     {
                         foreach (var operation in details[detailId])
@@ -397,7 +317,6 @@ namespace GKS
             Array.Resize(ref updateGroups, updateGroups.Length - 1);
 
             #endregion
-
 
             tbOut.Text += "\n\nNewGroup:";
             PrintGroups(updateGroups);
