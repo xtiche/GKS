@@ -61,7 +61,6 @@ namespace GKS
             foreach (string strOfOperation in listOfOperaions)
             {
                 details[iter] = strOfOperation.Split(new char[] { ' ' }).ToList();
-                string[] words = strOfOperation.Split(new char[] { ' ' });
                 foreach (string s in details[iter])
                 {
                     if (listOfUnequeOperations.FindIndex(x => x == s) == -1)
@@ -213,7 +212,7 @@ namespace GKS
             for (int j = 0; j < groups.Length - 1; j++)
             {
 
-                #region SortGroup
+                #region Sort Group
                 //tbOut.Text += "\nValues \n";
                 int maxLenght = 0;
                 int maxRow = 0;
@@ -308,8 +307,16 @@ namespace GKS
                     {
                         int cntSameOperations = 0;
                         foreach (var operation in details[i])
-                            if (uniqueOperationsInMainGroup.FindIndex(x => x == operation) != -1)
-                                cntSameOperations++;
+                        {
+                            foreach (var idDetail in groups[j])
+                            {
+                                if (details[idDetail].FindIndex(x => x == operation) != -1)
+                                {
+                                    cntSameOperations++;
+                                    break;
+                                }
+                            }
+                        }
 
                         if (details[i].Count == cntSameOperations)
                         {
