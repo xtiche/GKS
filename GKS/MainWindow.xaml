@@ -7,13 +7,13 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="308" Width="515"
         MinWidth="400">
-    <Grid>
+    <Grid x:Name="mainGrid">
         <Grid.RowDefinitions>
-            <RowDefinition MaxHeight="60" MinHeight="30"/>
+            <RowDefinition MaxHeight="40" MinHeight="30"/>
             <RowDefinition />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" MinWidth="165"/>
+            <ColumnDefinition Width="0.6*" MinWidth="165"/>
             <ColumnDefinition Width="0.7*"/>
         </Grid.ColumnDefinitions>
 
@@ -22,10 +22,8 @@
                 Click="Calc"/>
         <TextBlock Grid.Column="0" Grid.Row="1"  Margin="10 0 0 0">
                     Заполните поля значениями через " ".
-                    <LineBreak/>
-                    Используйте только латиницу и большие буквы.
         </TextBlock>
-        <GroupBox Grid.Row="1" Grid.Column="0" Header="Ввод операций" Margin="0 30 0 0" x:Name="gbValue">
+        <GroupBox Grid.Row="1" Grid.Column="0" Header="Ввод операций" Margin="0 20 0 0" x:Name="gbValue">
             <RichTextBox x:Name="rtb">
                 <FlowDocument>
                     <Paragraph>
@@ -46,13 +44,15 @@
                 </FlowDocument>
             </RichTextBox>
         </GroupBox>
-        <ScrollViewer Grid.Column="1" Grid.RowSpan="2">
-            <GroupBox Header="Вывод данных">
-                <TextBlock  Padding="20" x:Name="tbOut">
+        <GroupBox Header="Вывод данных" Grid.Column="1" Grid.RowSpan="2">
+            <ScrollViewer >
+
+                <TextBlock  Padding="10 10 20 10"  x:Name="tbOut">
 
                 </TextBlock>
-            </GroupBox>
-        </ScrollViewer>
-        <Button Content="Файл" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="70" Height="40" Click="InsertValuesFromFile"/>
+            </ScrollViewer>
+        </GroupBox>
+
+        <Button Content="Файл" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" MinWidth="70"  Click="InsertValuesFromFile"/>
     </Grid>
 </Window>

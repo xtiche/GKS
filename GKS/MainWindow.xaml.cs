@@ -51,6 +51,11 @@ namespace GKS
 
             int cntFields = listOfOperaions.Count();
 
+            if (cntFields > 5)
+                this.Width = this.Width + (cntFields - 5) * 75;
+            else
+                this.Width = 515;
+
             List<string>[] details = new List<string>[cntFields];
             for (int i = 0; i < cntFields; i++)
                 details[i] = new List<string>();
@@ -62,12 +67,8 @@ namespace GKS
             {
                 details[iter] = strOfOperation.Split(new char[] { ' ' }).ToList();
                 foreach (string s in details[iter])
-                {
                     if (listOfUnequeOperations.FindIndex(x => x == s) == -1)
-                    {
                         listOfUnequeOperations.Add(s);
-                    }
-                }
                 iter++;
             }
 
@@ -213,28 +214,19 @@ namespace GKS
             {
 
                 #region Sort Group
-                //tbOut.Text += "\nValues \n";
+
                 int maxLenght = 0;
                 int maxRow = 0;
                 int cntMaxGroup = 0;
                 List<int> indexMaxGroup = new List<int>();
-                List<string> uniqueOperationsInMainGroup = new List<string>();
                 for (int i = j; i < groups.Length; i++)
                 {
                     List<string> temp = new List<string>();
-                    foreach (var detailId in groups[i])
-                    {
-                        foreach (var operation in details[detailId])
-                        {
-                            if (temp.FindIndex(x => x == operation) == -1)
-                                temp.Add(operation);
-                        }
-                    }
+                    temp = FindUniqueOperationInGroup(groups[i], details);
                     if (maxLenght < temp.Count())
                     {
                         maxLenght = temp.Count();
                         maxRow = i;
-                        uniqueOperationsInMainGroup = temp;
                         cntMaxGroup = 0;
                         indexMaxGroup.Clear();
                     }
@@ -264,16 +256,8 @@ namespace GKS
                                 {
                                     int cntSameOperations = 0;
                                     foreach (var operation in details[i])
-                                    {
-                                        foreach (var idDetail in groups[i])
-                                        {
-                                            if (details[idDetail].FindIndex(x => x == operation) != -1)
-                                            {
-                                                cntSameOperations++;
-                                                break;
-                                            }
-                                        }
-                                    }
+                                        if (FindUniqueOperationInGroup(groups[i], details).FindIndex(x => x == operation) != -1)                                     
+                                            cntSameOperations++;  
 
                                     if (details[i].Count == cntSameOperations)
                                         cntDetail++;
@@ -307,16 +291,8 @@ namespace GKS
                     {
                         int cntSameOperations = 0;
                         foreach (var operation in details[i])
-                        {
-                            foreach (var idDetail in groups[j])
-                            {
-                                if (details[idDetail].FindIndex(x => x == operation) != -1)
-                                {
-                                    cntSameOperations++;
-                                    break;
-                                }
-                            }
-                        }
+                            if(FindUniqueOperationInGroup(groups[j],details).FindIndex(x=>x == operation) != -1)                       
+                                cntSameOperations++;
 
                         if (details[i].Count == cntSameOperations)
                         {
@@ -353,6 +329,15 @@ namespace GKS
 
             tbOut.Text += "\n\nNewGroup:";
             PrintGroups(updateGroups);
+
+            #region Creating Graph/Matrix
+
+
+
+
+            #endregion
+
+
         }
 
         public int SumOfAllElements(int[,] array, int size)
@@ -392,6 +377,17 @@ namespace GKS
                     tbOut.Text += (item + 1) + " ";
                 tbOut.Text += "}";
             }
+        }
+
+        public List<string> FindUniqueOperationInGroup(List<int> detailsInGroup, List<string>[] details)
+        {
+            List<string> uniqueOperationList = new List<string>();
+            foreach(var detailId in detailsInGroup)
+                foreach(var operation in details[detailId])
+                    if(uniqueOperationList.FindIndex(x=>x == operation) == -1)
+                        uniqueOperationList.Add(operation);
+
+            return uniqueOperationList;
         }
     }
 }
