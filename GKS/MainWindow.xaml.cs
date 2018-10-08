@@ -14,13 +14,17 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using QuickGraph;
+using GraphSharp.Controls;
 
 namespace GKS
 {
     public partial class MainWindow : Window
     {
+
         public MainWindow()
         {
+
             InitializeComponent();
         }
 
@@ -50,12 +54,13 @@ namespace GKS
                                                          StringSplitOptions.RemoveEmptyEntries).ToList();
 
             int cntFields = listOfOperaions.Count();
-
+            /*
             if (cntFields > 5)
                 this.Width = this.Width + (cntFields - 5) * 75;
             else
                 this.Width = 520;
 
+            */
             List<string>[] details = new List<string>[cntFields];
             for (int i = 0; i < cntFields; i++)
                 details[i] = new List<string>();
@@ -141,7 +146,7 @@ namespace GKS
                 List<int> maxI = new List<int>();
                 List<int> maxJ = new List<int>();
                 //fing max values
-                for (int i = 1; i < cntFields; i++)
+                for (int i = 0; i < cntFields; i++)
                 {
                     for (int j = 0; j < i; j++)
                     {
@@ -157,9 +162,11 @@ namespace GKS
                         if ((helpMatrix[i, j] == maxValue) &&
                             (
                             (maxI.FindIndex(x => x == i) != -1) ||
-                            (maxJ.FindIndex(x => x == j) != -1) ||
-                            (maxI.FindIndex(x => x == j) != -1) ||
+                            (maxJ.FindIndex(x => x == j) != -1)
+
+                            || (maxI.FindIndex(x => x == j) != -1) ||
                             (maxJ.FindIndex(x => x == i) != -1)
+
                             ))
                         {
                             maxI.Add(i);
@@ -199,8 +206,12 @@ namespace GKS
                 iterator++;
 
             }
-            Array.Resize(ref groups, groups.Length - 1);
 
+            while (groups[iterator] == null || groups[iterator].Count() == 0)
+            {
+                Array.Resize(ref groups, groups.Length - 1);
+                iterator--;
+            }
             #endregion
 
             tbOut.Text += "\n Groups:";
@@ -330,7 +341,7 @@ namespace GKS
             tbOut.Text += "\n\nNewGroup:";
             PrintGroups(updateGroups);
 
-            #region Creating Graph/Matrix
+            #region Creating Adjacency Matrix
 
             List<int[,]> listOfAdjacencyMatrix = new List<int[,]>();
 
@@ -361,7 +372,7 @@ namespace GKS
                 for (int i = 0; i < cntUniqueOperations; i++)
                 {
                     string[] operation = uniqueOperationForGroup.ToArray();
-                    tbOut.Text += operation[i] + "\t";
+                    tbOut.Text += operation[i] + "  ";
                 }
                 tbOut.Text += "\n";
 
@@ -370,7 +381,7 @@ namespace GKS
                     string[] operation = uniqueOperationForGroup.ToArray();
                     tbOut.Text += operation[i] + "\t";
                     for (int j = 0; j < cntUniqueOperations; j++)
-                        tbOut.Text += adjacencyMatrix[i, j] + "\t";
+                        tbOut.Text += adjacencyMatrix[i, j] + "    ";
                     tbOut.Text += "\n";
                 }
 
@@ -381,6 +392,76 @@ namespace GKS
             #endregion
 
 
+            #region Create Graph
+
+            /*
+            if (true)
+            {
+                var g = new BidirectionalGraph<object, IEdge<object>>();
+
+                List<string> uniqueOperationForGroup = FindUniqueOperationInGroup(updateGroups[0], details);
+                int cntUniqueOperations = uniqueOperationForGroup.Count;
+                foreach (var operation in uniqueOperationForGroup)
+                {
+                    g.AddVertex(operation);
+                }
+                foreach (var detailId in updateGroups[0])
+                {
+                    string[] operations = details[detailId].ToArray();
+                    int cntOperationInDetail = operations.Length;
+                    for (int i = 1; i < cntOperationInDetail; i++)
+                    {
+                        g.AddEdge(new Edge<object>(operations[i - 1], operations[i]));
+                    }
+                }
+
+                graphLayout.Graph = g;
+            }
+            */
+            tabControl.Items.Clear();
+            for (int i = 0; i < updateGroups.Count(); i++)
+            {
+
+
+                var g = new BidirectionalGraph<object, IEdge<object>>();
+
+                List<string> uniqueOperationForGroup = FindUniqueOperationInGroup(updateGroups[i], details);
+                int cntUniqueOperations = uniqueOperationForGroup.Count;
+                foreach (var operation in uniqueOperationForGroup)
+                {
+                    g.AddVertex(operation);
+                }
+                foreach (var detailId in updateGroups[i])
+                {
+                    string[] operations = details[detailId].ToArray();
+                    int cntOperationInDetail = operations.Length;
+                    for (int j = 1; j < cntOperationInDetail; j++)
+                    {
+                        g.AddEdge(new Edge<object>(operations[j - 1], operations[j]));
+                    }
+                }
+                GraphLayout gl = new GraphLayout();
+                gl.LayoutAlgorithmType = "FR";
+                gl.OverlapRemovalAlgorithmType = "FSA";
+                gl.Graph = g;
+
+                TabItem ti = new TabItem();
+                ti.Header = "Group" + (i + 1);
+                ti.Content = gl;
+
+                //ti.MouseDoubleClick += UpdateGraph;
+                //gl.ManipulationStarted += UpdateGraph;
+                tabControl.Items.Add(ti);     
+
+            }
+
+
+            #endregion
+
+        }
+        public void UpdateGraph(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("test"); 
         }
 
         public int SumOfAllElements(int[,] array, int size)
@@ -406,7 +487,7 @@ namespace GKS
             for (int i = 0; i < cntFields; i++)
             {
                 for (int j = 0; j < cntFields; j++)
-                    tbOut.Text += helpMatrix[i, j] + "\t";
+                    tbOut.Text += helpMatrix[i, j] + " ";
                 tbOut.Text += "\n";
             }
         }
@@ -432,6 +513,7 @@ namespace GKS
 
             return uniqueOperationList;
         }
+
 
     }
 }

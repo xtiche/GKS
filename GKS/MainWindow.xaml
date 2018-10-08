@@ -3,11 +3,16 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:GKS"
+        xmlns:graphsharp="clr-namespace:GraphSharp.Controls;assembly=GraphSharp.Controls"
+      
+        xmlns:zoom="clr-namespace:WPFExtensions.Controls;assembly=WPFExtensions"       
         mc:Ignorable="d"
-        Title="MainWindow" Height="300" Width="520"
-        MinWidth="400">
+        Title="MainWindow" Height="300" Width="800"
+        MinWidth="400"
+        x:Name="root">
+
     <Grid x:Name="mainGrid">
+        
         <Grid.RowDefinitions>
             <RowDefinition MaxHeight="40" MinHeight="30"/>
             <RowDefinition />
@@ -15,9 +20,10 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="0.6*" MinWidth="165" MaxWidth="230"/>
             <ColumnDefinition Width="0.7*"/>
+            <ColumnDefinition Width="0.7*"/>
         </Grid.ColumnDefinitions>
 
-
+        <Button Content="Файл" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" MinWidth="70"  Click="InsertValuesFromFile"/>
         <Button Grid.Column="0" Grid.Row="0" Content="Посчитать матрицу" Margin="85,10,5,10"
                 Click="Calc"/>
         <TextBlock Grid.Column="0" Grid.Row="1"  Margin="10 0 0 0">
@@ -52,7 +58,10 @@
                 </TextBlock>
             </ScrollViewer>
         </GroupBox>
-
-        <Button Content="Файл" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" MinWidth="70"  Click="InsertValuesFromFile"/>
+        <GroupBox Header="Графы групп" Grid.Column="2" Grid.RowSpan="2">
+            <TabControl  x:Name="tabControl" Padding="10 10 20 10">
+            </TabControl>
+        </GroupBox>
+        
     </Grid>
 </Window>
