@@ -24,7 +24,6 @@ namespace GKS
 
         public MainWindow()
         {
-
             InitializeComponent();
         }
 
@@ -130,7 +129,7 @@ namespace GKS
                                              {4,5,3,0,0 },
                                              {3,4,4,5,0 } };
             */
-            PrintHelpMatrixInTB(helpMatrix, cntFields);
+            PrintHelpMatrix(helpMatrix, cntFields);
 
             #region CreateGroup
             List<int>[] groups = new List<int>[1];
@@ -445,105 +444,63 @@ namespace GKS
                 arrayOfGroupModels[i] = listOfModels;
             }
 
-            #region Print Models
-            for (int i = 0; i < arrayOfGroupModels.Length; i++)
-            {
-                tbOut.Text += "\nModels of " + (i + 1) + " group\n";
-                for (int p = 0; p < arrayOfGroupModels[i].Count; p++)
-                {
-                    tbOut.Text += "Model " + (p + 1) + ": { ";
-                    foreach (var operation in arrayOfGroupModels[i][p])
-                    {
-                        tbOut.Text += operation + " ";
-                    }
-                    tbOut.Text += "}\n";
-                }
-            }
-
-            #endregion
-
+            PrintModel(arrayOfGroupModels);
             #endregion
 
             #region group merger
 
             #region feedback check
 
-            //выбор групы
+            bool checkFeedback = false;
+
             for (int i = 0; i < updateGroups.Length; i++)
             {
-                //выбор модели
-                for (int j = 0; j < arrayOfGroupModels[i].Count(); j++)
+                int[,] currentAndjancencyMatrix = CreateAdjacencyMatrixToModel(arrayOfGroupModels[i], listOfAdjacencyMatrix[i], FindUniqueOperationInGroup(updateGroups[i], details));
+
+                #region Print Andjancency Matrix To Group
+                /*
+                tbOut.Text += "Group" + (i + 1) + "\n";
+                for (int z = 0; z < currentAndjancencyMatrix.GetLength(0); z++)
                 {
-                    //выбор операций из модели
-                    for (int operationIndex = 0; operationIndex < arrayOfGroupModels[i][j].Count(); operationIndex++)
+                    for (int x = 0; x < currentAndjancencyMatrix.GetLength(1); x++)
+                        tbOut.Text += currentAndjancencyMatrix[z, x] + " ";
+                    tbOut.Text += "\n";
+                }
+                */
+                #endregion
+
+                for (int r = 0; r < currentAndjancencyMatrix.GetLength(0) && !checkFeedback; r++)
+                    for (int c = 0; c < currentAndjancencyMatrix.GetLength(0) && !checkFeedback; c++)
                     {
-                        int indexOfOperationInAndjancencyMatrix = FindUniqueOperationInGroup(updateGroups[i], details).FindIndex(x => x == arrayOfGroupModels[i][j][operationIndex]);
-                        for (int indexOfColumnInAM = 0; indexOfColumnInAM < listOfAdjacencyMatrix[i].GetLength(0); indexOfColumnInAM++)
+                        if (currentAndjancencyMatrix[r, c] == 1
+                            && currentAndjancencyMatrix[c, r] == 1
+                            && c != r)
                         {
-                            //поиск связи в матрице сходимости
-                            if (listOfAdjacencyMatrix[i][indexOfOperationInAndjancencyMatrix, indexOfColumnInAM] == 1)
+                            while (arrayOfGroupModels[i][c].Count > 0)
                             {
-                                for (int indexOfOperationInModel = 0; indexOfOperationInModel < arrayOfGroupModels[i][j].Count(); indexOfOperationInModel++)
-                                {
-                                    int indexInAndjancencyMatrixOfCurrentElementOfModel = FindUniqueOperationInGroup(updateGroups[i], details).FindIndex(x => x == arrayOfGroupModels[i][j][indexOfOperationInModel]);
-                                    //проверка на наличе обратной связи
-                                    if (((listOfAdjacencyMatrix[i][indexOfColumnInAM, indexInAndjancencyMatrixOfCurrentElementOfModel] == 1)
-                                        &&(indexInAndjancencyMatrixOfCurrentElementOfModel == indexOfOperationInAndjancencyMatrix))
-                                        ||((listOfAdjacencyMatrix[i][indexInAndjancencyMatrixOfCurrentElementOfModel, indexOfColumnInAM] == 1)
-                                        && (indexInAndjancencyMatrixOfCurrentElementOfModel != indexOfOperationInAndjancencyMatrix)))
-                                    {
-                                        //слияние моделей
-                                        string elementWithFeedback = FindUniqueOperationInGroup(updateGroups[i], details)[indexOfColumnInAM];
-                                        for (int modelIndex = 0; modelIndex < arrayOfGroupModels[i].Count; modelIndex++)
-                                        {
-                                            if (arrayOfGroupModels[i][modelIndex].FindIndex(x => x == elementWithFeedback) != -1 && modelIndex != j)
-                                            {
-                                                while (arrayOfGroupModels[i][modelIndex].Count > 0)
-                                                {
-                                                    arrayOfGroupModels[i][j].Add(arrayOfGroupModels[i][modelIndex].First());
-                                                    arrayOfGroupModels[i][modelIndex].Remove(arrayOfGroupModels[i][modelIndex].First());
-                                                }
-                                                arrayOfGroupModels[i].Remove(arrayOfGroupModels[i][modelIndex]);
-                                                //произведено слияние по этому начинает сначала
-                                                j = 0;
-                                                i = 0;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
+                                arrayOfGroupModels[i][r].Add(arrayOfGroupModels[i][c].First());
+                                arrayOfGroupModels[i][c].Remove(arrayOfGroupModels[i][c].First());
                             }
+                            arrayOfGroupModels[i].Remove(arrayOfGroupModels[i][c]);
+                            checkFeedback = true;
                         }
-
                     }
-                }
-            }
 
-            #endregion
-
-            #endregion
-
-            #region Print Models
-            for (int i = 0; i < arrayOfGroupModels.Length; i++)
-            {
-                tbOut.Text += "\nModels of " + (i + 1) + " group\n";
-                for (int p = 0; p < arrayOfGroupModels[i].Count; p++)
+                if (checkFeedback)
                 {
-                    tbOut.Text += "Model " + (p + 1) + ": { ";
-                    foreach (var operation in arrayOfGroupModels[i][p])
-                    {
-                        tbOut.Text += operation + " ";
-                    }
-                    tbOut.Text += "}\n";
+                    i = -1;
+                    checkFeedback = false;
                 }
             }
+
+            #endregion
+
+            PrintModel(arrayOfGroupModels);
 
             #endregion
 
 
         }
-
-
 
 
         public void UpdateGraph(object sender, RoutedEventArgs e)
@@ -568,7 +525,7 @@ namespace GKS
             return false;
         }
 
-        public void PrintHelpMatrixInTB(int[,] helpMatrix, int cntFields)
+        public void PrintHelpMatrix(int[,] helpMatrix, int cntFields)
         {
             tbOut.Text += "Help matrix:\n";
             for (int i = 0; i < cntFields; i++)
@@ -590,6 +547,21 @@ namespace GKS
             }
         }
 
+        public void PrintModel(List<List<string>>[] arrayOfGroupModels)
+        {
+            for (int i = 0; i < arrayOfGroupModels.Length; i++)
+            {
+                tbOut.Text += "\nModels of " + (i + 1) + " group\n";
+                for (int p = 0; p < arrayOfGroupModels[i].Count; p++)
+                {
+                    tbOut.Text += "Model " + (p + 1) + ": { ";
+                    foreach (var operation in arrayOfGroupModels[i][p])
+                        tbOut.Text += operation + " ";
+                    tbOut.Text += "}\n";
+                }
+            }
+        }
+
         public List<string> FindUniqueOperationInGroup(List<int> detailsInGroup, List<string>[] details)
         {
             List<string> uniqueOperationList = new List<string>();
@@ -599,6 +571,33 @@ namespace GKS
                         uniqueOperationList.Add(operation);
 
             return uniqueOperationList;
+        }
+
+        public int[,] CreateAdjacencyMatrixToModel(List<List<string>> listOfModels, int[,] adjacencyMatrix, List<string> uniqueOperationInGroup)
+        {
+            int[,] adjacencyMatrixToModel = new int[listOfModels.Count, listOfModels.Count];
+            //выбор модели
+            for (int i = 0; i < listOfModels.Count; i++)
+                //выбор операции
+                for (int j = 0; j < listOfModels[i].Count; j++)
+                {
+                    int indexInAdjacencyMatrix = uniqueOperationInGroup.FindIndex(x => x == listOfModels[i][j]);
+                    for (int iam = 0; iam < adjacencyMatrix.GetLength(0); iam++)
+                    {
+                        var currentUniqueValue = uniqueOperationInGroup[iam];
+                        if (adjacencyMatrix[indexInAdjacencyMatrix, iam] == 1
+                            && listOfModels[i].FindIndex(x => x == currentUniqueValue) == -1)
+                        {
+                            int indexModel = -1;
+                            foreach (var model in listOfModels)
+                                if (model.FindIndex(x => x == currentUniqueValue) != -1)
+                                    indexModel = listOfModels.FindIndex(x => x == model);
+                            adjacencyMatrixToModel[i, indexModel] = 1;
+                        }
+                    }
+
+                }
+            return adjacencyMatrixToModel;
         }
 
     }
