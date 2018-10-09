@@ -483,25 +483,32 @@ namespace GKS
                             //поиск связи в матрице сходимости
                             if (listOfAdjacencyMatrix[i][indexOfOperationInAndjancencyMatrix, indexOfColumnInAM] == 1)
                             {
-
-
-                                //проверка на наличе обратной связи
-                                if (listOfAdjacencyMatrix[i][indexOfColumnInAM, indexOfOperationInAndjancencyMatrix] == 1)
+                                for (int indexOfOperationInModel = 0; indexOfOperationInModel < arrayOfGroupModels[i][j].Count(); indexOfOperationInModel++)
                                 {
-                                    //слияние моделей
-                                    string elementWithFeedback = FindUniqueOperationInGroup(updateGroups[i], details)[indexOfColumnInAM];
-                                    for (int modelIndex = 0; modelIndex < arrayOfGroupModels[i].Count; modelIndex++)
+                                    int indexInAndjancencyMatrixOfCurrentElementOfModel = FindUniqueOperationInGroup(updateGroups[i], details).FindIndex(x => x == arrayOfGroupModels[i][j][indexOfOperationInModel]);
+                                    //проверка на наличе обратной связи
+                                    if (((listOfAdjacencyMatrix[i][indexOfColumnInAM, indexInAndjancencyMatrixOfCurrentElementOfModel] == 1)
+                                        &&(indexInAndjancencyMatrixOfCurrentElementOfModel == indexOfOperationInAndjancencyMatrix))
+                                        ||((listOfAdjacencyMatrix[i][indexInAndjancencyMatrixOfCurrentElementOfModel, indexOfColumnInAM] == 1)
+                                        && (indexInAndjancencyMatrixOfCurrentElementOfModel != indexOfOperationInAndjancencyMatrix)))
                                     {
-                                        if (arrayOfGroupModels[i][modelIndex].FindIndex(x => x == elementWithFeedback) != -1 && modelIndex != j)
+                                        //слияние моделей
+                                        string elementWithFeedback = FindUniqueOperationInGroup(updateGroups[i], details)[indexOfColumnInAM];
+                                        for (int modelIndex = 0; modelIndex < arrayOfGroupModels[i].Count; modelIndex++)
                                         {
-                                            while (arrayOfGroupModels[i][modelIndex].Count > 0)
+                                            if (arrayOfGroupModels[i][modelIndex].FindIndex(x => x == elementWithFeedback) != -1 && modelIndex != j)
                                             {
-                                                arrayOfGroupModels[i][j].Add(arrayOfGroupModels[i][modelIndex].First());
-                                                arrayOfGroupModels[i][modelIndex].Remove(arrayOfGroupModels[i][modelIndex].First());
+                                                while (arrayOfGroupModels[i][modelIndex].Count > 0)
+                                                {
+                                                    arrayOfGroupModels[i][j].Add(arrayOfGroupModels[i][modelIndex].First());
+                                                    arrayOfGroupModels[i][modelIndex].Remove(arrayOfGroupModels[i][modelIndex].First());
+                                                }
+                                                arrayOfGroupModels[i].Remove(arrayOfGroupModels[i][modelIndex]);
+                                                //произведено слияние по этому начинает сначала
+                                                j = 0;
+                                                i = 0;
+                                                break;
                                             }
-                                            arrayOfGroupModels[i].Remove(arrayOfGroupModels[i][modelIndex]);
-                                            
-                                            break;
                                         }
                                     }
                                 }
@@ -593,7 +600,6 @@ namespace GKS
 
             return uniqueOperationList;
         }
-
 
     }
 }
