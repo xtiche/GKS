@@ -394,51 +394,23 @@ namespace GKS
 
             #region Create Graph
 
-            /*
-            if (true)
-            {
-                var g = new BidirectionalGraph<object, IEdge<object>>();
-
-                List<string> uniqueOperationForGroup = FindUniqueOperationInGroup(updateGroups[0], details);
-                int cntUniqueOperations = uniqueOperationForGroup.Count;
-                foreach (var operation in uniqueOperationForGroup)
-                {
-                    g.AddVertex(operation);
-                }
-                foreach (var detailId in updateGroups[0])
-                {
-                    string[] operations = details[detailId].ToArray();
-                    int cntOperationInDetail = operations.Length;
-                    for (int i = 1; i < cntOperationInDetail; i++)
-                    {
-                        g.AddEdge(new Edge<object>(operations[i - 1], operations[i]));
-                    }
-                }
-
-                graphLayout.Graph = g;
-            }
-            */
             tabControl.Items.Clear();
             for (int i = 0; i < updateGroups.Count(); i++)
             {
-
-
                 var g = new BidirectionalGraph<object, IEdge<object>>();
 
                 List<string> uniqueOperationForGroup = FindUniqueOperationInGroup(updateGroups[i], details);
                 int cntUniqueOperations = uniqueOperationForGroup.Count;
                 foreach (var operation in uniqueOperationForGroup)
-                {
                     g.AddVertex(operation);
-                }
+
                 foreach (var detailId in updateGroups[i])
                 {
                     string[] operations = details[detailId].ToArray();
                     int cntOperationInDetail = operations.Length;
                     for (int j = 1; j < cntOperationInDetail; j++)
-                    {
                         g.AddEdge(new Edge<object>(operations[j - 1], operations[j]));
-                    }
+
                 }
                 GraphLayout gl = new GraphLayout();
                 gl.LayoutAlgorithmType = "FR";
@@ -449,19 +421,127 @@ namespace GKS
                 ti.Header = "Group" + (i + 1);
                 ti.Content = gl;
 
-                //ti.MouseDoubleClick += UpdateGraph;
-                //gl.ManipulationStarted += UpdateGraph;
-                tabControl.Items.Add(ti);     
+                tabControl.Items.Add(ti);
 
             }
 
 
             #endregion
 
+            #region Create Models
+
+            List<List<string>>[] arrayOfGroupModels = new List<List<string>>[updateGroups.Length];
+
+            for (int i = 0; i < updateGroups.Length; i++)
+            {
+                List<string> uniqueOpeationInGroup = FindUniqueOperationInGroup(updateGroups[i], details);
+                List<List<string>> listOfModels = new List<List<string>>();
+                for (int j = 0; j < uniqueOpeationInGroup.Count; j++)
+                {
+                    List<string> model = new List<string>();
+                    model.Add(uniqueOpeationInGroup[j]);
+                    listOfModels.Add(model);
+                }
+                arrayOfGroupModels[i] = listOfModels;
+            }
+
+            #region Print Models
+            for (int i = 0; i < arrayOfGroupModels.Length; i++)
+            {
+                tbOut.Text += "\nModels of " + (i + 1) + " group\n";
+                for (int p = 0; p < arrayOfGroupModels[i].Count; p++)
+                {
+                    tbOut.Text += "Model " + (p + 1) + ": { ";
+                    foreach (var operation in arrayOfGroupModels[i][p])
+                    {
+                        tbOut.Text += operation + " ";
+                    }
+                    tbOut.Text += "}\n";
+                }
+            }
+
+            #endregion
+
+            #endregion
+
+            #region group merger
+
+            #region feedback check
+
+            //выбор групы
+            for (int i = 0; i < updateGroups.Length; i++)
+            {
+                //выбор модели
+                for (int j = 0; j < arrayOfGroupModels[i].Count(); j++)
+                {
+                    //выбор операций из модели
+                    for (int operationIndex = 0; operationIndex < arrayOfGroupModels[i][j].Count(); operationIndex++)
+                    {
+                        int indexOfOperationInAndjancencyMatrix = FindUniqueOperationInGroup(updateGroups[i], details).FindIndex(x => x == arrayOfGroupModels[i][j][operationIndex]);
+                        for (int indexOfColumnInAM = 0; indexOfColumnInAM < listOfAdjacencyMatrix[i].GetLength(0); indexOfColumnInAM++)
+                        {
+                            //поиск связи в матрице сходимости
+                            if (listOfAdjacencyMatrix[i][indexOfOperationInAndjancencyMatrix, indexOfColumnInAM] == 1)
+                            {
+
+
+                                //проверка на наличе обратной связи
+                                if (listOfAdjacencyMatrix[i][indexOfColumnInAM, indexOfOperationInAndjancencyMatrix] == 1)
+                                {
+                                    //слияние моделей
+                                    string elementWithFeedback = FindUniqueOperationInGroup(updateGroups[i], details)[indexOfColumnInAM];
+                                    for (int modelIndex = 0; modelIndex < arrayOfGroupModels[i].Count; modelIndex++)
+                                    {
+                                        if (arrayOfGroupModels[i][modelIndex].FindIndex(x => x == elementWithFeedback) != -1 && modelIndex != j)
+                                        {
+                                            while (arrayOfGroupModels[i][modelIndex].Count > 0)
+                                            {
+                                                arrayOfGroupModels[i][j].Add(arrayOfGroupModels[i][modelIndex].First());
+                                                arrayOfGroupModels[i][modelIndex].Remove(arrayOfGroupModels[i][modelIndex].First());
+                                            }
+                                            arrayOfGroupModels[i].Remove(arrayOfGroupModels[i][modelIndex]);
+                                            
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
+
+            #endregion
+
+            #endregion
+
+            #region Print Models
+            for (int i = 0; i < arrayOfGroupModels.Length; i++)
+            {
+                tbOut.Text += "\nModels of " + (i + 1) + " group\n";
+                for (int p = 0; p < arrayOfGroupModels[i].Count; p++)
+                {
+                    tbOut.Text += "Model " + (p + 1) + ": { ";
+                    foreach (var operation in arrayOfGroupModels[i][p])
+                    {
+                        tbOut.Text += operation + " ";
+                    }
+                    tbOut.Text += "}\n";
+                }
+            }
+
+            #endregion
+
+
         }
+
+
+
+
         public void UpdateGraph(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("test"); 
+            MessageBox.Show("test");
         }
 
         public int SumOfAllElements(int[,] array, int size)
