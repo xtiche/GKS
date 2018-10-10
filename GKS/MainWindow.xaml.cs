@@ -21,7 +21,6 @@ namespace GKS
 {
     public partial class MainWindow : Window
     {
-
         public MainWindow()
         {
             InitializeComponent();
@@ -412,7 +411,7 @@ namespace GKS
 
                 }
                 GraphLayout gl = new GraphLayout();
-                gl.LayoutAlgorithmType = "FR";
+                gl.LayoutAlgorithmType = "KK";
                 gl.OverlapRemovalAlgorithmType = "FSA";
                 gl.Graph = g;
 
@@ -476,11 +475,8 @@ namespace GKS
                             && currentAndjancencyMatrix[c, r] == 1
                             && c != r)
                         {
+                            MergeModel(ref arrayOfGroupModels[i], r, c);
                             while (arrayOfGroupModels[i][c].Count > 0)
-                            {
-                                arrayOfGroupModels[i][r].Add(arrayOfGroupModels[i][c].First());
-                                arrayOfGroupModels[i][c].Remove(arrayOfGroupModels[i][c].First());
-                            }
                             arrayOfGroupModels[i].Remove(arrayOfGroupModels[i][c]);
                             checkFeedback = true;
                         }
@@ -497,15 +493,47 @@ namespace GKS
 
             PrintModel(arrayOfGroupModels);
 
+            #region circuit check
+
+            bool checkCircuit = false;
+            
+            for (int i = 0; i < updateGroups.Length; i++)
+            {
+                int[,] currentAndjancencyMatrix = CreateAdjacencyMatrixToModel(arrayOfGroupModels[i], listOfAdjacencyMatrix[i], FindUniqueOperationInGroup(updateGroups[i], details));
+
+                for (int r = 0; r < currentAndjancencyMatrix.GetLength(0) && !checkCircuit; r++)
+                    for (int c = 0; c < currentAndjancencyMatrix.GetLength(0) && !checkCircuit; c++)
+                    {
+                        if (currentAndjancencyMatrix[r, c] == 1)
+                        {
+                            List<int> usedIndex = new List<int>();
+                            usedIndex.Add(c);
+                            checkCircuit = CheckCircuit(ref arrayOfGroupModels[i], currentAndjancencyMatrix, usedIndex, r);
+
+                            if (checkCircuit)
+                            {
+                                MergeModel(ref arrayOfGroupModels[i], r, c);
+                                checkCircuit = true;
+                                arrayOfGroupModels[i].RemoveAll(x => x.Count == 0);
+                            }
+
+                        }
+                    }
+
+                if (checkCircuit)
+                {
+                    checkCircuit = false;
+                    i = -1;
+                }
+            }
+
+            #endregion
+
+            PrintModel(arrayOfGroupModels);
+
             #endregion
 
 
-        }
-
-
-        public void UpdateGraph(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show("test");
         }
 
         public int SumOfAllElements(int[,] array, int size)
@@ -514,6 +542,14 @@ namespace GKS
             for (int i = 0; i < size; i++)
                 for (int j = 0; j < size; j++)
                     sum += array[i, j];
+            return sum;
+        }
+
+        public int SumOfAllElementsInRow(int[,] ajdencecyMatrix, int row)
+        {
+            int sum = 0;
+            for (int i = 0; i < ajdencecyMatrix.GetLength(1); i++)
+                sum += ajdencecyMatrix[row, i];
             return sum;
         }
 
@@ -598,6 +634,40 @@ namespace GKS
 
                 }
             return adjacencyMatrixToModel;
+        }
+
+        public void MergeModel(ref List<List<string>> listOfModel, int indexToWrite, int indexToRemove)
+        {
+            while (listOfModel[indexToRemove].Count > 0)
+            {
+                listOfModel[indexToWrite].Add(listOfModel[indexToRemove].First());
+                listOfModel[indexToRemove].Remove(listOfModel[indexToRemove].First());
+            }
+        }
+
+        public bool CheckCircuit(ref List<List<string>> listOfModel,int[,] currentAndjancencyMatrix, List<int> usedIndexList, int mainIndex)
+        {
+            int indexOfParent = usedIndexList.Last();
+            if (SumOfAllElementsInRow(currentAndjancencyMatrix, indexOfParent) > 1) return false;
+
+            for (int i = 0; i < currentAndjancencyMatrix.GetLength(0); i++)
+            {
+                if (currentAndjancencyMatrix[indexOfParent, i] == 1)
+                {
+                    if (currentAndjancencyMatrix[mainIndex, i] == 1)
+                    {
+                        MergeModel(ref listOfModel, indexOfParent, i);
+                        return true;
+                    }
+                    else
+                    {
+                        usedIndexList.Add(i);
+                        CheckCircuit(ref listOfModel, currentAndjancencyMatrix, usedIndexList, mainIndex);
+                    }
+                }
+
+            }
+            return false;
         }
 
     }
