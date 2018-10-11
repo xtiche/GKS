@@ -448,55 +448,12 @@ namespace GKS
 
             #region group merger
 
-            #region feedback check
-
-            bool checkFeedback = false;
-
-            for (int i = 0; i < updateGroups.Length; i++)
-            {
-                int[,] currentAndjancencyMatrix = CreateAdjacencyMatrixToModel(arrayOfGroupModels[i], listOfAdjacencyMatrix[i], FindUniqueOperationInGroup(updateGroups[i], details));
-
-                #region Print Andjancency Matrix To Group
-                /*
-                tbOut.Text += "Group" + (i + 1) + "\n";
-                for (int z = 0; z < currentAndjancencyMatrix.GetLength(0); z++)
-                {
-                    for (int x = 0; x < currentAndjancencyMatrix.GetLength(1); x++)
-                        tbOut.Text += currentAndjancencyMatrix[z, x] + " ";
-                    tbOut.Text += "\n";
-                }
-                */
-                #endregion
-
-                for (int r = 0; r < currentAndjancencyMatrix.GetLength(0) && !checkFeedback; r++)
-                    for (int c = 0; c < currentAndjancencyMatrix.GetLength(0) && !checkFeedback; c++)
-                    {
-                        if (currentAndjancencyMatrix[r, c] == 1
-                            && currentAndjancencyMatrix[c, r] == 1
-                            && c != r)
-                        {
-                            MergeModel(ref arrayOfGroupModels[i], r, c);
-                            while (arrayOfGroupModels[i][c].Count > 0)
-                            arrayOfGroupModels[i].Remove(arrayOfGroupModels[i][c]);
-                            checkFeedback = true;
-                        }
-                    }
-
-                if (checkFeedback)
-                {
-                    i = -1;
-                    checkFeedback = false;
-                }
-            }
-
-            #endregion
-
             PrintModel(arrayOfGroupModels);
 
             #region circuit check
 
             bool checkCircuit = false;
-            
+
             for (int i = 0; i < updateGroups.Length; i++)
             {
                 int[,] currentAndjancencyMatrix = CreateAdjacencyMatrixToModel(arrayOfGroupModels[i], listOfAdjacencyMatrix[i], FindUniqueOperationInGroup(updateGroups[i], details));
@@ -513,7 +470,6 @@ namespace GKS
                             if (checkCircuit)
                             {
                                 MergeModel(ref arrayOfGroupModels[i], r, c);
-                                checkCircuit = true;
                                 arrayOfGroupModels[i].RemoveAll(x => x.Count == 0);
                             }
 
@@ -523,6 +479,43 @@ namespace GKS
                 if (checkCircuit)
                 {
                     checkCircuit = false;
+                    i = -1;
+                }
+            }
+
+            #endregion
+
+            PrintModel(arrayOfGroupModels);
+
+            #region check on closed cirle
+
+            bool circleCheck = false;
+
+            for (int i = 0; i < updateGroups.Length; i++)
+            {
+                int[,] currentAndjancencyMatrix = CreateAdjacencyMatrixToModel(arrayOfGroupModels[i], listOfAdjacencyMatrix[i], FindUniqueOperationInGroup(updateGroups[i], details));
+
+                for (int r = 0; r < currentAndjancencyMatrix.GetLength(0) && !circleCheck; r++)
+                    for (int c = 0; c < currentAndjancencyMatrix.GetLength(0) && !circleCheck; c++)
+                    {
+                        if (currentAndjancencyMatrix[r, c] == 1)
+                        {
+                            List<int> usedIndex = new List<int>();
+                            usedIndex.Add(c);
+                            circleCheck = CheckCirlce(ref arrayOfGroupModels[i], currentAndjancencyMatrix, usedIndex, r);
+
+                            if (circleCheck)
+                            {
+                                MergeModel(ref arrayOfGroupModels[i], r, c);
+                                arrayOfGroupModels[i].RemoveAll(x => x.Count == 0);
+                            }
+
+                        }
+                    }
+
+                if (circleCheck)
+                {
+                    circleCheck = false;
                     i = -1;
                 }
             }
@@ -645,7 +638,7 @@ namespace GKS
             }
         }
 
-        public bool CheckCircuit(ref List<List<string>> listOfModel,int[,] currentAndjancencyMatrix, List<int> usedIndexList, int mainIndex)
+        public bool CheckCircuit(ref List<List<string>> listOfModel, int[,] currentAndjancencyMatrix, List<int> usedIndexList, int mainIndex)
         {
             int indexOfParent = usedIndexList.Last();
             if (SumOfAllElementsInRow(currentAndjancencyMatrix, indexOfParent) > 1) return false;
@@ -659,10 +652,43 @@ namespace GKS
                         MergeModel(ref listOfModel, indexOfParent, i);
                         return true;
                     }
-                    else
+                    else if (usedIndexList.FindIndex(x => x == i) == -1)
                     {
                         usedIndexList.Add(i);
-                        CheckCircuit(ref listOfModel, currentAndjancencyMatrix, usedIndexList, mainIndex);
+                        if(CheckCircuit(ref listOfModel, currentAndjancencyMatrix, usedIndexList, mainIndex))
+                        {
+                            MergeModel(ref listOfModel, indexOfParent, i);
+                            return true;
+                        }
+                    }
+                }
+
+            }
+            return false;
+        }
+
+        public bool CheckCirlce(ref List<List<string>> listOfModel, int[,] currentAndjancencyMatrix, List<int> usedIndexList, int mainIndex)
+        {
+
+            int indexOfParent = usedIndexList.Last();
+
+            for (int i = 0; i < currentAndjancencyMatrix.GetLength(0); i++)
+            {
+                if (currentAndjancencyMatrix[indexOfParent, i] == 1)
+                {
+                    if (currentAndjancencyMatrix[i, mainIndex] == 1)
+                    {
+                        MergeModel(ref listOfModel, indexOfParent, i);
+                        return true;
+                    }
+                    else if (usedIndexList.FindIndex(x => x == i) == -1)
+                    {
+                        usedIndexList.Add(i);
+                        if(CheckCirlce(ref listOfModel, currentAndjancencyMatrix, usedIndexList, mainIndex))
+                        {
+                            MergeModel(ref listOfModel, indexOfParent, i);
+                            return true;
+                        }  
                     }
                 }
 
