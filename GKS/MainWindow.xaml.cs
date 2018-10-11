@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using Microsoft.Win32;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,6 +14,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using QuickGraph;
+using GraphSharp.Controls;
 
 namespace GKS
 {
@@ -22,115 +26,52 @@ namespace GKS
             InitializeComponent();
         }
 
-        public void DrawNewFields(object sender, RoutedEventArgs e)
+        public void InsertValuesFromFile(object sender, RoutedEventArgs e)
         {
-            //MessageBox.Show("Test");
-            try
-            {
-                spValue.Children.Clear();
-                int cntFields = Convert.ToInt32(tbCntFields.Text);
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Filter = "All files (*.*)|*.*";
 
-                this.Height = 140 + cntFields * 30;
-                for (int i = 0; i < cntFields; i++)
+            if (ofd.ShowDialog() == true)
+            {
+                TextRange doc = new TextRange(rtb.Document.ContentStart, rtb.Document.ContentEnd);
+                using (FileStream fs = new FileStream(ofd.FileName, FileMode.Open))
                 {
-                    TextBox tb = new TextBox();
-                    tb.HorizontalAlignment = HorizontalAlignment.Left;
-                    tb.Margin = new Thickness(5);
-                    tb.MinWidth = 200;
-                    spValue.Children.Add(tb);
+                    if (System.IO.Path.GetExtension(ofd.FileName).ToLower() == ".txt")
+                        doc.Load(fs, DataFormats.Text);
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString());
-            }
-
         }
 
         public void Calc(object sender, RoutedEventArgs e)
         {
-            int cntFields = Convert.ToInt32(tbCntFields.Text);
 
-            List<int>[] details = new List<int>[cntFields];
+            string rtbText = new TextRange(rtb.Document.ContentStart,
+                                           rtb.Document.ContentEnd).Text;
+
+            List<string> listOfOperaions = rtbText.Split(new[] { Environment.NewLine },
+                                                         StringSplitOptions.RemoveEmptyEntries).ToList();
+
+            int cntFields = listOfOperaions.Count();
+            /*
+            if (cntFields > 5)
+                this.Width = this.Width + (cntFields - 5) * 75;
+            else
+                this.Width = 520;
+
+            */
+            List<string>[] details = new List<string>[cntFields];
             for (int i = 0; i < cntFields; i++)
-                details[i] = new List<int>();
-            List<string> listOfOperaions = new List<string>();
-            foreach (Object o in spValue.Children)
-            {
-                TextBox tb = (TextBox)o;
-                listOfOperaions.Add(tb.Text);
-            }
+                details[i] = new List<string>();
 
             List<string> listOfUnequeOperations = new List<string>();
 
             int iter = 0;
             foreach (string strOfOperation in listOfOperaions)
             {
-                string[] words = strOfOperation.Split(new char[] { ' ' });
-                foreach (string s in words)
-                {
-                    switch (s)
-                    {
-                        case "T1":
-                            details[iter].Add(11);
-                            break;
-                        case "T2":
-                            details[iter].Add(12);
-                            break;
-                        case "T3":
-                            details[iter].Add(13);
-                            break;
-                        case "T4":
-                            details[iter].Add(14);
-                            break;
-                        case "T5":
-                            details[iter].Add(15);
-                            break;
-
-                        case "C1":
-                            details[iter].Add(21);
-                            break;
-                        case "C2":
-                            details[iter].Add(22);
-                            break;
-                        case "C3":
-                            details[iter].Add(23);
-                            break;
-                        case "C4":
-                            details[iter].Add(24);
-                            break;
-
-                        case "P1":
-                            details[iter].Add(31);
-                            break;
-                        case "P2":
-                            details[iter].Add(32);
-                            break;
-                        case "P3":
-                            details[iter].Add(33);
-                            break;
-                        case "P4":
-                            details[iter].Add(34);
-                            break;
-
-                        case "F1":
-                            details[iter].Add(41);
-                            break;
-                        case "F2":
-                            details[iter].Add(42);
-                            break;
-                        case "F3":
-                            details[iter].Add(43);
-                            break;
-                        case "F4":
-                            details[iter].Add(44);
-                            break;
-                    }
+                details[iter] = strOfOperation.Split(new char[] { ' ' }).ToList();
+                foreach (string s in details[iter])
                     if (listOfUnequeOperations.FindIndex(x => x == s) == -1)
-                    {
                         listOfUnequeOperations.Add(s);
-                    }
-                }
                 iter++;
             }
 
@@ -152,7 +93,7 @@ namespace GKS
             #endregion
 
             #region CreateHelpMatrix
-            
+
             int[,] helpMatrix = new int[cntFields, cntFields];
 
             for (int i = 1; i < cntFields; i++)
@@ -160,14 +101,14 @@ namespace GKS
                 for (int j = 0; j < i; j++)
                 {
                     int cntDifElements = 0;
-                    foreach (int item in details[j])
+                    foreach (string item in details[j])
                     {
                         if (details[i].FindIndex(x => x == item) == -1)
                         {
                             cntDifElements++;
                         }
                     }
-                    foreach (int item in details[i])
+                    foreach (string item in details[i])
                     {
                         if (details[j].FindIndex(x => x == item) == -1)
                         {
@@ -177,17 +118,18 @@ namespace GKS
                     helpMatrix[i, j] = listOfUnequeOperations.Count() - cntDifElements;
                 }
             }
-            
+
             #endregion
 
-            /*int[,] helpMatrix = new int[,] { {0,0,0,0,0 },
+            /*
+            int[,] helpMatrix = new int[,] { {0,0,0,0,0 },
                                              {3,0,0,0,0 },
                                              {2,5,0,0,0 },
                                              {4,5,3,0,0 },
                                              {3,4,4,5,0 } };
             */
-            PrintHelpMatrixInTB(helpMatrix, cntFields);
-         
+            PrintHelpMatrix(helpMatrix, cntFields);
+
             #region CreateGroup
             List<int>[] groups = new List<int>[1];
 
@@ -202,7 +144,7 @@ namespace GKS
                 List<int> maxI = new List<int>();
                 List<int> maxJ = new List<int>();
                 //fing max values
-                for (int i = 1; i < cntFields; i++)
+                for (int i = 0; i < cntFields; i++)
                 {
                     for (int j = 0; j < i; j++)
                     {
@@ -218,9 +160,11 @@ namespace GKS
                         if ((helpMatrix[i, j] == maxValue) &&
                             (
                             (maxI.FindIndex(x => x == i) != -1) ||
-                            (maxJ.FindIndex(x => x == j) != -1) ||
-                            (maxI.FindIndex(x => x == j) != -1) ||
+                            (maxJ.FindIndex(x => x == j) != -1)
+
+                            || (maxI.FindIndex(x => x == j) != -1) ||
                             (maxJ.FindIndex(x => x == i) != -1)
+
                             ))
                         {
                             maxI.Add(i);
@@ -261,22 +205,328 @@ namespace GKS
 
             }
 
-            #endregion
-
-            #region OutputGroups
-            tbOut.Text += "\n Groups:";
-            for (int i = 0; i < groups.Length - 1; i++)
+            while (groups[iterator] == null || groups[iterator].Count() == 0)
             {
-                tbOut.Text += "\n " + i + " - { ";
-                foreach (var item in groups[i])
-                {
-                    tbOut.Text += (item + 1) + " ";
-                }
-                tbOut.Text += "}";
+                Array.Resize(ref groups, groups.Length - 1);
+                iterator--;
             }
             #endregion
 
-          
+            tbOut.Text += "\n Groups:";
+            PrintGroups(groups);
+
+            #region ClaryfingTheContentOfGroups
+
+            List<int> blockDetails = new List<int>();
+
+            for (int j = 0; j < groups.Length - 1; j++)
+            {
+
+                #region Sort Group
+
+                int maxLenght = 0;
+                int maxRow = 0;
+                int cntMaxGroup = 0;
+                List<int> indexMaxGroup = new List<int>();
+                for (int i = j; i < groups.Length; i++)
+                {
+                    List<string> temp = new List<string>();
+                    temp = FindUniqueOperationInGroup(groups[i], details);
+                    if (maxLenght < temp.Count())
+                    {
+                        maxLenght = temp.Count();
+                        maxRow = i;
+                        cntMaxGroup = 0;
+                        indexMaxGroup.Clear();
+                    }
+                    else if (maxLenght == temp.Count())
+                    {
+                        cntMaxGroup++;
+                        indexMaxGroup.Add(i);
+                    }
+
+                }
+
+                #region sorting groups with the same number of elements
+
+                if (cntMaxGroup > 1)
+                {
+                    int maxDetail = 0;
+                    for (int i = j; i < groups.Length; i++)
+                    {
+                        if (indexMaxGroup.FindIndex(x => x == i) != -1)
+                        {
+                            int cntDetail = 0;
+                            for (int q = 0; q < details.Length; q++)
+                            {
+                                if (groups[i].FindIndex(x => x == q) == -1
+                                    &&
+                                    blockDetails.FindIndex(x => x == q) == -1)
+                                {
+                                    int cntSameOperations = 0;
+                                    foreach (var operation in details[i])
+                                        if (FindUniqueOperationInGroup(groups[i], details).FindIndex(x => x == operation) != -1)
+                                            cntSameOperations++;
+
+                                    if (details[i].Count == cntSameOperations)
+                                        cntDetail++;
+
+                                }
+                            }
+                            if (maxDetail < cntDetail)
+                            {
+                                maxDetail = cntDetail;
+                                maxRow = i;
+                            }
+
+                        }
+                    }
+                }
+
+                #endregion
+
+                //sort groups;
+                List<int> tmp = groups[maxRow];
+                groups[maxRow] = groups[j];
+                groups[j] = tmp;
+
+                #endregion
+
+                for (int i = 0; i < details.Length; i++)
+                {
+                    if (groups[j].FindIndex(x => x == i) == -1
+                        &&
+                        blockDetails.FindIndex(x => x == i) == -1)
+                    {
+                        int cntSameOperations = 0;
+                        foreach (var operation in details[i])
+                            if (FindUniqueOperationInGroup(groups[j], details).FindIndex(x => x == operation) != -1)
+                                cntSameOperations++;
+
+                        if (details[i].Count == cntSameOperations)
+                        {
+                            foreach (var item in groups)
+                                if (item.FindIndex(x => x == i) != -1)
+                                    item.Remove(i);
+
+                            groups[j].Add(i);
+                        }
+                    }
+                }
+
+                foreach (var item in groups[j])
+                    blockDetails.Add(item);
+            }
+            #endregion
+
+            #region Create Update Group
+
+            List<int>[] updateGroups = new List<int>[1];
+            int indexNewGroup = 0;
+            foreach (var group in groups)
+            {
+                if (group.Count() != 0)
+                {
+                    updateGroups[indexNewGroup] = group;
+                    Array.Resize(ref updateGroups, updateGroups.Length + 1);
+                    indexNewGroup++;
+                }
+            }
+            Array.Resize(ref updateGroups, updateGroups.Length - 1);
+
+            #endregion
+
+            tbOut.Text += "\n\nNewGroup:";
+            PrintGroups(updateGroups);
+
+            #region Creating Adjacency Matrix
+
+            List<int[,]> listOfAdjacencyMatrix = new List<int[,]>();
+
+            tbOut.Text += "\n\nMatrix for groups:\n\n";
+
+            foreach (var group in updateGroups)
+            {
+                List<string> uniqueOperationForGroup = FindUniqueOperationInGroup(group, details);
+                int cntUniqueOperations = uniqueOperationForGroup.Count;
+                int[,] adjacencyMatrix = new int[cntUniqueOperations, cntUniqueOperations];
+                foreach (var detailId in group)
+                {
+                    string[] operation = details[detailId].ToArray();
+                    int cntOperationInDetail = operation.Length;
+                    for (int i = 1; i < cntOperationInDetail; i++)
+                    {
+                        int trackIndex = uniqueOperationForGroup.FindIndex(x => x == operation[i]);
+                        int prevIndex = uniqueOperationForGroup.FindIndex(x => x == operation[i - 1]);
+                        adjacencyMatrix[prevIndex, trackIndex] = 1;
+                    }
+                }
+
+                listOfAdjacencyMatrix.Add(adjacencyMatrix);
+
+                #region Print Matrix
+
+                tbOut.Text += "\n\t";
+                for (int i = 0; i < cntUniqueOperations; i++)
+                {
+                    string[] operation = uniqueOperationForGroup.ToArray();
+                    tbOut.Text += operation[i] + "  ";
+                }
+                tbOut.Text += "\n";
+
+                for (int i = 0; i < cntUniqueOperations; i++)
+                {
+                    string[] operation = uniqueOperationForGroup.ToArray();
+                    tbOut.Text += operation[i] + "\t";
+                    for (int j = 0; j < cntUniqueOperations; j++)
+                        tbOut.Text += adjacencyMatrix[i, j] + "    ";
+                    tbOut.Text += "\n";
+                }
+
+                #endregion
+
+            }
+
+            #endregion
+
+
+            #region Create Graph
+
+            tabControl.Items.Clear();
+            for (int i = 0; i < updateGroups.Count(); i++)
+            {
+                var g = new BidirectionalGraph<object, IEdge<object>>();
+
+                List<string> uniqueOperationForGroup = FindUniqueOperationInGroup(updateGroups[i], details);
+                int cntUniqueOperations = uniqueOperationForGroup.Count;
+                foreach (var operation in uniqueOperationForGroup)
+                    g.AddVertex(operation);
+
+                foreach (var detailId in updateGroups[i])
+                {
+                    string[] operations = details[detailId].ToArray();
+                    int cntOperationInDetail = operations.Length;
+                    for (int j = 1; j < cntOperationInDetail; j++)
+                        g.AddEdge(new Edge<object>(operations[j - 1], operations[j]));
+
+                }
+                GraphLayout gl = new GraphLayout();
+                gl.LayoutAlgorithmType = "KK";
+                gl.OverlapRemovalAlgorithmType = "FSA";
+                gl.Graph = g;
+
+                TabItem ti = new TabItem();
+                ti.Header = "Group" + (i + 1);
+                ti.Content = gl;
+
+                tabControl.Items.Add(ti);
+
+            }
+
+
+            #endregion
+
+            #region Create Models
+
+            List<List<string>>[] arrayOfGroupModels = new List<List<string>>[updateGroups.Length];
+
+            for (int i = 0; i < updateGroups.Length; i++)
+            {
+                List<string> uniqueOpeationInGroup = FindUniqueOperationInGroup(updateGroups[i], details);
+                List<List<string>> listOfModels = new List<List<string>>();
+                for (int j = 0; j < uniqueOpeationInGroup.Count; j++)
+                {
+                    List<string> model = new List<string>();
+                    model.Add(uniqueOpeationInGroup[j]);
+                    listOfModels.Add(model);
+                }
+                arrayOfGroupModels[i] = listOfModels;
+            }
+
+            PrintModel(arrayOfGroupModels);
+            #endregion
+
+            #region group merger
+
+            PrintModel(arrayOfGroupModels);
+
+            #region circuit check
+
+            bool checkCircuit = false;
+
+            for (int i = 0; i < updateGroups.Length; i++)
+            {
+                int[,] currentAndjancencyMatrix = CreateAdjacencyMatrixToModel(arrayOfGroupModels[i], listOfAdjacencyMatrix[i], FindUniqueOperationInGroup(updateGroups[i], details));
+
+                for (int r = 0; r < currentAndjancencyMatrix.GetLength(0) && !checkCircuit; r++)
+                    for (int c = 0; c < currentAndjancencyMatrix.GetLength(0) && !checkCircuit; c++)
+                    {
+                        if (currentAndjancencyMatrix[r, c] == 1)
+                        {
+                            List<int> usedIndex = new List<int>();
+                            usedIndex.Add(c);
+                            checkCircuit = CheckCircuit(ref arrayOfGroupModels[i], currentAndjancencyMatrix, usedIndex, r);
+
+                            if (checkCircuit)
+                            {
+                                MergeModel(ref arrayOfGroupModels[i], r, c);
+                                arrayOfGroupModels[i].RemoveAll(x => x.Count == 0);
+                            }
+
+                        }
+                    }
+
+                if (checkCircuit)
+                {
+                    checkCircuit = false;
+                    i = -1;
+                }
+            }
+
+            #endregion
+
+            PrintModel(arrayOfGroupModels);
+
+            #region check on closed cirle
+
+            bool circleCheck = false;
+
+            for (int i = 0; i < updateGroups.Length; i++)
+            {
+                int[,] currentAndjancencyMatrix = CreateAdjacencyMatrixToModel(arrayOfGroupModels[i], listOfAdjacencyMatrix[i], FindUniqueOperationInGroup(updateGroups[i], details));
+
+                for (int r = 0; r < currentAndjancencyMatrix.GetLength(0) && !circleCheck; r++)
+                    for (int c = 0; c < currentAndjancencyMatrix.GetLength(0) && !circleCheck; c++)
+                    {
+                        if (currentAndjancencyMatrix[r, c] == 1)
+                        {
+                            List<int> usedIndex = new List<int>();
+                            usedIndex.Add(c);
+                            circleCheck = CheckCirlce(ref arrayOfGroupModels[i], currentAndjancencyMatrix, usedIndex, r);
+
+                            if (circleCheck)
+                            {
+                                MergeModel(ref arrayOfGroupModels[i], r, c);
+                                arrayOfGroupModels[i].RemoveAll(x => x.Count == 0);
+                            }
+
+                        }
+                    }
+
+                if (circleCheck)
+                {
+                    circleCheck = false;
+                    i = -1;
+                }
+            }
+
+            #endregion
+
+            PrintModel(arrayOfGroupModels);
+
+            #endregion
+
+
         }
 
         public int SumOfAllElements(int[,] array, int size)
@@ -288,28 +538,163 @@ namespace GKS
             return sum;
         }
 
+        public int SumOfAllElementsInRow(int[,] ajdencecyMatrix, int row)
+        {
+            int sum = 0;
+            for (int i = 0; i < ajdencecyMatrix.GetLength(1); i++)
+                sum += ajdencecyMatrix[row, i];
+            return sum;
+        }
+
         public bool FindElement(List<int>[] array, int size, int findValue)
         {
-
             for (int i = 0; i < size; i++)
                 if (array[i].FindIndex(x => x == findValue) != -1)
                     return true;
-
             return false;
         }
-        
-        public void PrintHelpMatrixInTB(int [,] helpMatrix, int cntFields)
+
+        public void PrintHelpMatrix(int[,] helpMatrix, int cntFields)
         {
             tbOut.Text += "Help matrix:\n";
             for (int i = 0; i < cntFields; i++)
             {
                 for (int j = 0; j < cntFields; j++)
-                {
                     tbOut.Text += helpMatrix[i, j] + " ";
-                }
                 tbOut.Text += "\n";
             }
-
         }
+
+        public void PrintGroups(List<int>[] groups)
+        {
+            for (int i = 0; i < groups.Length; i++)
+            {
+                tbOut.Text += "\n " + (i + 1) + " - { ";
+                foreach (var item in groups[i])
+                    tbOut.Text += (item + 1) + " ";
+                tbOut.Text += "}";
+            }
+        }
+
+        public void PrintModel(List<List<string>>[] arrayOfGroupModels)
+        {
+            for (int i = 0; i < arrayOfGroupModels.Length; i++)
+            {
+                tbOut.Text += "\nModels of " + (i + 1) + " group\n";
+                for (int p = 0; p < arrayOfGroupModels[i].Count; p++)
+                {
+                    tbOut.Text += "Model " + (p + 1) + ": { ";
+                    foreach (var operation in arrayOfGroupModels[i][p])
+                        tbOut.Text += operation + " ";
+                    tbOut.Text += "}\n";
+                }
+            }
+        }
+
+        public List<string> FindUniqueOperationInGroup(List<int> detailsInGroup, List<string>[] details)
+        {
+            List<string> uniqueOperationList = new List<string>();
+            foreach (var detailId in detailsInGroup)
+                foreach (var operation in details[detailId])
+                    if (uniqueOperationList.FindIndex(x => x == operation) == -1)
+                        uniqueOperationList.Add(operation);
+
+            return uniqueOperationList;
+        }
+
+        public int[,] CreateAdjacencyMatrixToModel(List<List<string>> listOfModels, int[,] adjacencyMatrix, List<string> uniqueOperationInGroup)
+        {
+            int[,] adjacencyMatrixToModel = new int[listOfModels.Count, listOfModels.Count];
+            //выбор модели
+            for (int i = 0; i < listOfModels.Count; i++)
+                //выбор операции
+                for (int j = 0; j < listOfModels[i].Count; j++)
+                {
+                    int indexInAdjacencyMatrix = uniqueOperationInGroup.FindIndex(x => x == listOfModels[i][j]);
+                    for (int iam = 0; iam < adjacencyMatrix.GetLength(0); iam++)
+                    {
+                        var currentUniqueValue = uniqueOperationInGroup[iam];
+                        if (adjacencyMatrix[indexInAdjacencyMatrix, iam] == 1
+                            && listOfModels[i].FindIndex(x => x == currentUniqueValue) == -1)
+                        {
+                            int indexModel = -1;
+                            foreach (var model in listOfModels)
+                                if (model.FindIndex(x => x == currentUniqueValue) != -1)
+                                    indexModel = listOfModels.FindIndex(x => x == model);
+                            adjacencyMatrixToModel[i, indexModel] = 1;
+                        }
+                    }
+
+                }
+            return adjacencyMatrixToModel;
+        }
+
+        public void MergeModel(ref List<List<string>> listOfModel, int indexToWrite, int indexToRemove)
+        {
+            while (listOfModel[indexToRemove].Count > 0)
+            {
+                listOfModel[indexToWrite].Add(listOfModel[indexToRemove].First());
+                listOfModel[indexToRemove].Remove(listOfModel[indexToRemove].First());
+            }
+        }
+
+        public bool CheckCircuit(ref List<List<string>> listOfModel, int[,] currentAndjancencyMatrix, List<int> usedIndexList, int mainIndex)
+        {
+            int indexOfParent = usedIndexList.Last();
+            if (SumOfAllElementsInRow(currentAndjancencyMatrix, indexOfParent) > 1) return false;
+
+            for (int i = 0; i < currentAndjancencyMatrix.GetLength(0); i++)
+            {
+                if (currentAndjancencyMatrix[indexOfParent, i] == 1)
+                {
+                    if (currentAndjancencyMatrix[mainIndex, i] == 1)
+                    {
+                        MergeModel(ref listOfModel, indexOfParent, i);
+                        return true;
+                    }
+                    else if (usedIndexList.FindIndex(x => x == i) == -1)
+                    {
+                        usedIndexList.Add(i);
+                        if(CheckCircuit(ref listOfModel, currentAndjancencyMatrix, usedIndexList, mainIndex))
+                        {
+                            MergeModel(ref listOfModel, indexOfParent, i);
+                            return true;
+                        }
+                    }
+                }
+
+            }
+            return false;
+        }
+
+        public bool CheckCirlce(ref List<List<string>> listOfModel, int[,] currentAndjancencyMatrix, List<int> usedIndexList, int mainIndex)
+        {
+
+            int indexOfParent = usedIndexList.Last();
+
+            for (int i = 0; i < currentAndjancencyMatrix.GetLength(0); i++)
+            {
+                if (currentAndjancencyMatrix[indexOfParent, i] == 1)
+                {
+                    if (currentAndjancencyMatrix[i, mainIndex] == 1)
+                    {
+                        MergeModel(ref listOfModel, indexOfParent, i);
+                        return true;
+                    }
+                    else if (usedIndexList.FindIndex(x => x == i) == -1)
+                    {
+                        usedIndexList.Add(i);
+                        if(CheckCirlce(ref listOfModel, currentAndjancencyMatrix, usedIndexList, mainIndex))
+                        {
+                            MergeModel(ref listOfModel, indexOfParent, i);
+                            return true;
+                        }  
+                    }
+                }
+
+            }
+            return false;
+        }
+
     }
 }

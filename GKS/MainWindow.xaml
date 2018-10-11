@@ -3,59 +3,65 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:GKS"
+        xmlns:graphsharp="clr-namespace:GraphSharp.Controls;assembly=GraphSharp.Controls"
+      
+        xmlns:zoom="clr-namespace:WPFExtensions.Controls;assembly=WPFExtensions"       
         mc:Ignorable="d"
-        Title="MainWindow" Height="302.655" Width="644.69"
-        MinWidth="400">
-    <Grid>
+        Title="MainWindow" Height="300" Width="800"
+        MinWidth="400"
+        x:Name="root">
+
+    <Grid x:Name="mainGrid">
+        
         <Grid.RowDefinitions>
-            <RowDefinition MaxHeight="60" MinHeight="30"/>
+            <RowDefinition MaxHeight="40" MinHeight="30"/>
             <RowDefinition />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0.3*" MinWidth="165"/>
-            <ColumnDefinition Width="*" MinWidth="35"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="0.6*" MinWidth="165" MaxWidth="230"/>
+            <ColumnDefinition Width="0.7*"/>
+            <ColumnDefinition Width="0.7*"/>
         </Grid.ColumnDefinitions>
-        <TextBlock Margin="10 5 5 5">
-            Введите количество строк
-        </TextBlock>
-        <TextBox MaxWidth="40" MinWidth="20" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Left"
-                 Margin="10,30,0,10" Width="30" x:Name="tbCntFields">5</TextBox>
-        <Button Content="Подтвердить" Margin="51,30,0,10" HorizontalAlignment="Left" 
-                Grid.Column="0" Grid.Row="0" Width="106" Click="DrawNewFields"/>
 
-
-        <Button Grid.Column="1" Grid.Row="0" Content="Посчитать матрицу" Margin="10"
+        <Button Content="Файл" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" MinWidth="70"  Click="InsertValuesFromFile"/>
+        <Button Grid.Column="0" Grid.Row="0" Content="Посчитать матрицу" Margin="85,10,5,10"
                 Click="Calc"/>
-        <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Margin="10 0 0 0">
+        <TextBlock Grid.Column="0" Grid.Row="1"  Margin="10 0 0 0">
                     Заполните поля значениями через " ".
-                    <LineBreak/>
-                    Используйте только латиницу и большие буквы.
         </TextBlock>
-        <GroupBox Grid.Row="1" Grid.ColumnSpan="2" Header="Ввод операций" Margin="0 30 0 0" x:Name="gbValue">
-            <StackPanel x:Name="spValue">
-                <TextBox Margin="5">
-                    T1 T2 C1 C2
-                </TextBox>
-                <TextBox Margin="5">
-                    T1 T3 T4 P1 C1
-                </TextBox>
-                <TextBox Margin="5">
-                    T1 T3 P1 F1
-                </TextBox>
-                <TextBox Margin="5">
-                    T1 T3 T2 T4
-                </TextBox>
-                <TextBox Margin="5">
-                    T1 T2 T3
-                </TextBox>
-            </StackPanel>
+        <GroupBox Grid.Row="1" Grid.Column="0" Header="Ввод операций" Margin="0 20 0 0" x:Name="gbValue">
+            <RichTextBox x:Name="rtb" Margin="3">
+                <FlowDocument>
+                    <Paragraph>
+                        T1 T2 C1 C2
+                    </Paragraph>
+                    <Paragraph>
+                        T1 T3 T4 P1 C1
+                    </Paragraph>
+                    <Paragraph>
+                        T1 T3 P1 F1
+                    </Paragraph>
+                    <Paragraph>
+                        T1 T3 T2 T4
+                    </Paragraph>
+                    <Paragraph>
+                        T1 T3 T4
+                    </Paragraph>
+                </FlowDocument>
+            </RichTextBox>
         </GroupBox>
-        <ScrollViewer Grid.Column="2" Grid.RowSpan="2">
-            <TextBlock  Padding="20" x:Name="tbOut">
+        <GroupBox Header="Вывод данных" Grid.Column="1" Grid.RowSpan="2">
+            <ScrollViewer >
 
-            </TextBlock>
-        </ScrollViewer>
+                <TextBlock  Padding="10 10 20 10"  x:Name="tbOut">
+
+                </TextBlock>
+            </ScrollViewer>
+        </GroupBox>
+        <GroupBox Header="Графы групп" Grid.Column="2" Grid.RowSpan="2">
+            <TabControl  x:Name="tabControl" Padding="10 10 20 10">
+            </TabControl>
+        </GroupBox>
+        
     </Grid>
 </Window>
