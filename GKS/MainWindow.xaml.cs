@@ -469,7 +469,8 @@ namespace GKS
 
                             if (checkCircuit)
                             {
-                                MergeModel(ref arrayOfGroupModels[i], r, c);
+                                if ((arrayOfGroupModels[i][r].Count + arrayOfGroupModels[i][c].Count) <= 5)
+                                    MergeModel(ref arrayOfGroupModels[i], r, c);
                                 arrayOfGroupModels[i].RemoveAll(x => x.Count == 0);
                             }
 
@@ -506,7 +507,8 @@ namespace GKS
 
                             if (circleCheck)
                             {
-                                MergeModel(ref arrayOfGroupModels[i], r, c);
+                                if ((arrayOfGroupModels[i][r].Count + arrayOfGroupModels[i][c].Count) <= 5)
+                                    MergeModel(ref arrayOfGroupModels[i], r, c);
                                 arrayOfGroupModels[i].RemoveAll(x => x.Count == 0);
                             }
 
@@ -649,16 +651,22 @@ namespace GKS
                 {
                     if (currentAndjancencyMatrix[mainIndex, i] == 1)
                     {
-                        MergeModel(ref listOfModel, indexOfParent, i);
-                        return true;
+                        if ((listOfModel[indexOfParent].Count + listOfModel[i].Count) <= 5)
+                        {
+                            MergeModel(ref listOfModel, indexOfParent, i);
+                            return true;
+                        }
                     }
                     else if (usedIndexList.FindIndex(x => x == i) == -1)
                     {
                         usedIndexList.Add(i);
-                        if(CheckCircuit(ref listOfModel, currentAndjancencyMatrix, usedIndexList, mainIndex))
+                        if (CheckCircuit(ref listOfModel, currentAndjancencyMatrix, usedIndexList, mainIndex))
                         {
-                            MergeModel(ref listOfModel, indexOfParent, i);
-                            return true;
+                            if ((listOfModel[indexOfParent].Count + listOfModel[i].Count) <= 5)
+                            {
+                                MergeModel(ref listOfModel, indexOfParent, i);
+                                return true;
+                            }
                         }
                     }
                 }
@@ -678,17 +686,23 @@ namespace GKS
                 {
                     if (currentAndjancencyMatrix[i, mainIndex] == 1)
                     {
-                        MergeModel(ref listOfModel, indexOfParent, i);
-                        return true;
+                        if ((listOfModel[indexOfParent].Count + listOfModel[i].Count) <= 5)
+                        {
+                            MergeModel(ref listOfModel, indexOfParent, i);
+                            return true;
+                        }
                     }
                     else if (usedIndexList.FindIndex(x => x == i) == -1)
                     {
                         usedIndexList.Add(i);
-                        if(CheckCirlce(ref listOfModel, currentAndjancencyMatrix, usedIndexList, mainIndex))
+                        if (CheckCirlce(ref listOfModel, currentAndjancencyMatrix, usedIndexList, mainIndex))
                         {
-                            MergeModel(ref listOfModel, indexOfParent, i);
-                            return true;
-                        }  
+                            if ((listOfModel[indexOfParent].Count + listOfModel[i].Count) <= 5)
+                            {
+                                MergeModel(ref listOfModel, indexOfParent, i);
+                                return true;
+                            }
+                        }
                     }
                 }
 
