@@ -200,8 +200,11 @@ namespace GKS
                         )
                         groups[iterator].Add(item);
 
-                Array.Resize(ref groups, groups.Length + 1);
-                iterator++;
+                if (groups.Last() != null && groups[iterator].Count != 0)
+                {
+                    Array.Resize(ref groups, groups.Length + 1);
+                    iterator++;
+                }
 
             }
 
@@ -440,15 +443,16 @@ namespace GKS
                     model.Add(uniqueOpeationInGroup[j]);
                     listOfModels.Add(model);
                 }
+                listOfModels.RemoveAll(x => x.Count == 0);
                 arrayOfGroupModels[i] = listOfModels;
             }
 
-            PrintModel(arrayOfGroupModels);
+            PrintArrayOfModels(arrayOfGroupModels);
             #endregion
 
             #region group merger
 
-            PrintModel(arrayOfGroupModels);
+            //PrintArrayOfModels(arrayOfGroupModels);
 
             #region circuit check
 
@@ -486,7 +490,7 @@ namespace GKS
 
             #endregion
 
-            PrintModel(arrayOfGroupModels);
+            //PrintArrayOfModels(arrayOfGroupModels);
 
             #region check on closed cirle
 
@@ -524,10 +528,70 @@ namespace GKS
 
             #endregion
 
-            PrintModel(arrayOfGroupModels);
+            PrintArrayOfModels(arrayOfGroupModels);
 
             #endregion
 
+
+            #region Model Clarifying
+
+            List<List<string>> listOfAllModel = new List<List<string>>();
+            for (int i = 0; i < arrayOfGroupModels.Length; i++)
+                foreach (var listOfModel in arrayOfGroupModels[i])
+                    listOfAllModel.Add(listOfModel);
+
+            #region sortList
+            int max = 0;
+            for (int i = 0; i < listOfAllModel.Count - 1; i++)
+            {
+                max = i;
+                for (int j = i + 1; j < listOfAllModel.Count; j++)
+                    if (listOfAllModel[j].Count > listOfAllModel[max].Count)
+                        max = j;
+
+                if (max != i)
+                {
+                    var tmp = listOfAllModel[i];
+                    listOfAllModel[i] = listOfAllModel[max];
+                    listOfAllModel[max] = tmp;
+                }
+            }
+            #endregion
+
+            tbOut.Text += "\nAll Models:\n";
+            PrintModel(listOfAllModel);
+
+            List<List<string>> listOfClarifyingModel = new List<List<string>>();
+            for (int i = 0; i < listOfAllModel.Count; i++)
+                if (!FindInListOfAllModel(listOfAllModel[i], listOfClarifyingModel))
+                    listOfClarifyingModel.Add(listOfAllModel[i]);
+
+
+            tbOut.Text += "\nClarifying Models 1 part:\n";
+            PrintModel(listOfClarifyingModel);
+
+            for (int i = 0; i < listOfClarifyingModel.Count; i++)
+            {
+                for (int j = 0; j < listOfClarifyingModel[i].Count; j++)
+                {
+                    int index = 0;
+                    if ((index = FindOperationInListOfModel(listOfClarifyingModel[i][j], listOfClarifyingModel, i)) != -1)
+                    {
+                        if (listOfClarifyingModel[i].Count > listOfClarifyingModel[index].Count)
+                            listOfClarifyingModel[i].Remove(listOfClarifyingModel[i][j]);
+                        else
+                            listOfClarifyingModel[index].Remove(listOfClarifyingModel[i][j]);
+
+                        i = -1;
+                        break;
+                    }
+                }
+            }
+
+            tbOut.Text += "\nClarifying Models 2 part:\n";
+            PrintModel(listOfClarifyingModel);
+
+            #endregion
 
         }
 
@@ -578,18 +642,23 @@ namespace GKS
             }
         }
 
-        public void PrintModel(List<List<string>>[] arrayOfGroupModels)
+        public void PrintArrayOfModels(List<List<string>>[] arrayOfGroupModels)
         {
             for (int i = 0; i < arrayOfGroupModels.Length; i++)
             {
                 tbOut.Text += "\nModels of " + (i + 1) + " group\n";
-                for (int p = 0; p < arrayOfGroupModels[i].Count; p++)
-                {
-                    tbOut.Text += "Model " + (p + 1) + ": { ";
-                    foreach (var operation in arrayOfGroupModels[i][p])
-                        tbOut.Text += operation + " ";
-                    tbOut.Text += "}\n";
-                }
+                PrintModel(arrayOfGroupModels[i]);
+            }
+        }
+
+        public void PrintModel(List<List<string>> listOfModel)
+        {
+            for (int p = 0; p < listOfModel.Count; p++)
+            {
+                tbOut.Text += "Model " + (p + 1) + ": { ";
+                foreach (var operation in listOfModel[p])
+                    tbOut.Text += operation + " ";
+                tbOut.Text += "}\n";
             }
         }
 
@@ -710,5 +779,26 @@ namespace GKS
             return false;
         }
 
+        public bool FindInListOfAllModel(List<string> currentModel, List<List<string>> listOfAllModels)
+        {
+            foreach (var model in listOfAllModels)
+            {
+                int cntSameOperation = 0;
+                foreach (var operation in currentModel)
+                    if (model.FindIndex(x => x == operation) != -1)
+                        cntSameOperation++;
+                if (cntSameOperation == currentModel.Count)
+                    return true;
+            }
+            return false;
+        }
+
+        public int FindOperationInListOfModel(string value, List<List<string>> listOfModels, int blockIndex)
+        {
+            for (int i = 0; i < listOfModels.Count; i++)
+                if (listOfModels[i].FindIndex(x => x == value) != -1 && blockIndex != i)
+                    return i;
+            return -1;
+        }
     }
 }
