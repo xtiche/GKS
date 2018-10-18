@@ -52,13 +52,7 @@ namespace GKS
                                                          StringSplitOptions.RemoveEmptyEntries).ToList();
 
             int cntFields = listOfOperaions.Count();
-            /*
-            if (cntFields > 5)
-                this.Width = this.Width + (cntFields - 5) * 75;
-            else
-                this.Width = 520;
 
-            */
             List<string>[] details = new List<string>[cntFields];
             for (int i = 0; i < cntFields; i++)
                 details[i] = new List<string>();
@@ -97,37 +91,20 @@ namespace GKS
             int[,] helpMatrix = new int[cntFields, cntFields];
 
             for (int i = 1; i < cntFields; i++)
-            {
                 for (int j = 0; j < i; j++)
                 {
                     int cntDifElements = 0;
                     foreach (string item in details[j])
-                    {
                         if (details[i].FindIndex(x => x == item) == -1)
-                        {
                             cntDifElements++;
-                        }
-                    }
                     foreach (string item in details[i])
-                    {
                         if (details[j].FindIndex(x => x == item) == -1)
-                        {
                             cntDifElements++;
-                        }
-                    }
                     helpMatrix[i, j] = listOfUnequeOperations.Count() - cntDifElements;
                 }
-            }
 
             #endregion
 
-            /*
-            int[,] helpMatrix = new int[,] { {0,0,0,0,0 },
-                                             {3,0,0,0,0 },
-                                             {2,5,0,0,0 },
-                                             {4,5,3,0,0 },
-                                             {3,4,4,5,0 } };
-            */
             PrintHelpMatrix(helpMatrix, cntFields);
 
             #region CreateGroup
@@ -346,7 +323,7 @@ namespace GKS
 
             List<int[,]> listOfAdjacencyMatrix = new List<int[,]>();
 
-            tbOut.Text += "\n\nMatrix for groups:\n\n";
+            tbOut.Text += "\n\nMatrix for groups:\n";
 
             foreach (var group in updateGroups)
             {
@@ -391,7 +368,6 @@ namespace GKS
             }
 
             #endregion
-
 
             #region Create Graph
 
@@ -446,92 +422,97 @@ namespace GKS
                 listOfModels.RemoveAll(x => x.Count == 0);
                 arrayOfGroupModels[i] = listOfModels;
             }
-
-            PrintArrayOfModels(arrayOfGroupModels);
             #endregion
-
-            #region group merger
 
             //PrintArrayOfModels(arrayOfGroupModels);
 
-            #region circuit check
+            #region model merger      
 
             bool checkCircuit = false;
-
-            for (int i = 0; i < updateGroups.Length; i++)
-            {
-                int[,] currentAndjancencyMatrix = CreateAdjacencyMatrixToModel(arrayOfGroupModels[i], listOfAdjacencyMatrix[i], FindUniqueOperationInGroup(updateGroups[i], details));
-
-                for (int r = 0; r < currentAndjancencyMatrix.GetLength(0) && !checkCircuit; r++)
-                    for (int c = 0; c < currentAndjancencyMatrix.GetLength(0) && !checkCircuit; c++)
-                    {
-                        if (currentAndjancencyMatrix[r, c] == 1)
-                        {
-                            List<int> usedIndex = new List<int>();
-                            usedIndex.Add(c);
-                            checkCircuit = CheckCircuit(ref arrayOfGroupModels[i], currentAndjancencyMatrix, usedIndex, r);
-
-                            if (checkCircuit)
-                            {
-                                if ((arrayOfGroupModels[i][r].Count + arrayOfGroupModels[i][c].Count) <= 5)
-                                    MergeModel(ref arrayOfGroupModels[i], r, c);
-                                arrayOfGroupModels[i].RemoveAll(x => x.Count == 0);
-                            }
-
-                        }
-                    }
-
-                if (checkCircuit)
-                {
-                    checkCircuit = false;
-                    i = -1;
-                }
-            }
-
-            #endregion
-
-            //PrintArrayOfModels(arrayOfGroupModels);
-
-            #region check on closed cirle
-
             bool circleCheck = false;
 
-            for (int i = 0; i < updateGroups.Length; i++)
+            while (!circleCheck || !checkCircuit)
             {
-                int[,] currentAndjancencyMatrix = CreateAdjacencyMatrixToModel(arrayOfGroupModels[i], listOfAdjacencyMatrix[i], FindUniqueOperationInGroup(updateGroups[i], details));
+                circleCheck = false;
+                checkCircuit = false;
 
-                for (int r = 0; r < currentAndjancencyMatrix.GetLength(0) && !circleCheck; r++)
-                    for (int c = 0; c < currentAndjancencyMatrix.GetLength(0) && !circleCheck; c++)
-                    {
-                        if (currentAndjancencyMatrix[r, c] == 1)
+                #region circuit check
+                for (int i = 0; i < updateGroups.Length; i++)
+                {
+                    int[,] currentAndjancencyMatrix = CreateAdjacencyMatrixToModel(arrayOfGroupModels[i], listOfAdjacencyMatrix[i], FindUniqueOperationInGroup(updateGroups[i], details));
+
+                    for (int r = 0; r < currentAndjancencyMatrix.GetLength(0) && !checkCircuit; r++)
+                        for (int c = 0; c < currentAndjancencyMatrix.GetLength(0) && !checkCircuit; c++)
                         {
-                            List<int> usedIndex = new List<int>();
-                            usedIndex.Add(c);
-                            circleCheck = CheckCirlce(ref arrayOfGroupModels[i], currentAndjancencyMatrix, usedIndex, r);
-
-                            if (circleCheck)
+                            if (currentAndjancencyMatrix[r, c] == 1)
                             {
-                                if ((arrayOfGroupModels[i][r].Count + arrayOfGroupModels[i][c].Count) <= 5)
-                                    MergeModel(ref arrayOfGroupModels[i], r, c);
-                                arrayOfGroupModels[i].RemoveAll(x => x.Count == 0);
-                            }
+                                List<int> usedIndex = new List<int>();
+                                usedIndex.Add(c);
+                                checkCircuit = CheckCircuit(ref arrayOfGroupModels[i], currentAndjancencyMatrix, usedIndex, r);
 
+                                if (checkCircuit)
+                                {
+                                    if ((arrayOfGroupModels[i][r].Count + arrayOfGroupModels[i][c].Count) <= 5)
+                                        MergeModel(ref arrayOfGroupModels[i], r, c);
+                                    arrayOfGroupModels[i].RemoveAll(x => x.Count == 0);
+                                }
+
+                            }
                         }
+
+                    if (checkCircuit)
+                    {
+                        circleCheck = true;
+                        checkCircuit = false;
+                        i = -1;
+                    }
+                }
+
+                #endregion
+
+
+                #region check on closed cirle
+
+                for (int i = 0; i < updateGroups.Length; i++)
+                {
+                    int[,] currentAndjancencyMatrix = CreateAdjacencyMatrixToModel(arrayOfGroupModels[i], listOfAdjacencyMatrix[i], FindUniqueOperationInGroup(updateGroups[i], details));
+
+                    for (int r = 0; r < currentAndjancencyMatrix.GetLength(0) && !circleCheck; r++)
+                        for (int c = 0; c < currentAndjancencyMatrix.GetLength(0) && !circleCheck; c++)
+                        {
+                            if (currentAndjancencyMatrix[r, c] == 1)
+                            {
+                                List<int> usedIndex = new List<int>();
+                                usedIndex.Add(c);
+                                circleCheck = CheckCirlce(ref arrayOfGroupModels[i], currentAndjancencyMatrix, usedIndex, r);
+
+                                if (circleCheck)
+                                {
+                                    if ((arrayOfGroupModels[i][r].Count + arrayOfGroupModels[i][c].Count) <= 5)
+                                        MergeModel(ref arrayOfGroupModels[i], r, c);
+                                    arrayOfGroupModels[i].RemoveAll(x => x.Count == 0);
+                                }
+
+                            }
+                        }
+
+                    if (circleCheck)
+                    {
+                        circleCheck = false;
+                        checkCircuit = true;
+                        i = -1;
                     }
 
-                if (circleCheck)
-                {
-                    circleCheck = false;
-                    i = -1;
                 }
+                #endregion
+
+                if (!circleCheck && !checkCircuit)
+                    break;
             }
-
-            #endregion
-
+            tbOut.Text += "\n\nModul in group:\n";
             PrintArrayOfModels(arrayOfGroupModels);
 
             #endregion
-
 
             #region Model Clarifying
 
@@ -558,7 +539,7 @@ namespace GKS
             }
             #endregion
 
-            tbOut.Text += "\nAll Models:\n";
+            tbOut.Text += "\n\nAll Moduls:\n";
             PrintModel(listOfAllModel);
 
             List<List<string>> listOfClarifyingModel = new List<List<string>>();
@@ -567,7 +548,7 @@ namespace GKS
                     listOfClarifyingModel.Add(listOfAllModel[i]);
 
 
-            tbOut.Text += "\nClarifying Models 1 part:\n";
+            tbOut.Text += "\nClarifying Moduls 1 part:\n";
             PrintModel(listOfClarifyingModel);
 
             for (int i = 0; i < listOfClarifyingModel.Count; i++)
@@ -588,11 +569,91 @@ namespace GKS
                 }
             }
 
-            tbOut.Text += "\nClarifying Models 2 part:\n";
+            tbOut.Text += "\nClarifying Moduls 2 part:\n";
             PrintModel(listOfClarifyingModel);
 
             #endregion
 
+            #region Optimal Permutation
+
+            tbOut.Text += "\nModul order:\n";
+            for (int i = 0; i < listOfClarifyingModel.Count; i++)
+                tbOut.Text += "M" + (i + 1) + " ";
+
+            List<int> listOfModelIndex = new List<int>();
+            for (int i = 0; i < listOfClarifyingModel.Count; i++)
+                listOfModelIndex.Add(i);
+
+            List<IEnumerable<int>> listOfAllPermutations = GetPermutations(listOfModelIndex, listOfModelIndex.Count).ToList();
+
+            /*
+            foreach (var model in listOfAllPermutations)
+            {
+                foreach (var opearation in model)
+                {
+                    tbOut.Text += opearation + " ";
+                }
+                tbOut.Text += "\n";
+            }
+            */
+
+            int minCntFeedback = listOfModelIndex.Count;
+            int indexOfOptimalPermutation = 0;
+            int cntOptimalPermutation = 0;
+
+            for (int j = 0; j < listOfAllPermutations.Count; j++)
+            {
+                List<Tuple<int, int>> listOfFeedback = new List<Tuple<int, int>>();
+                int cntFeedBack = 0;
+                foreach (var detail in details)
+                {
+                    for (int i = 1; i < detail.Count; i++)
+                    {
+
+                        int indexOfModelOfFirst = FindModel(listOfClarifyingModel, detail[i - 1]);
+                        int indexOfModelOfSecond = FindModel(listOfClarifyingModel, detail[i]);
+
+                        int posOfFirstModelInCurrentPermutation = listOfAllPermutations[j].ToList().FindIndex(x => x == indexOfModelOfFirst);
+                        int posOfSecondModelInCurrentPermutation = listOfAllPermutations[j].ToList().FindIndex(x => x == indexOfModelOfSecond);
+
+                        Tuple<int, int> curentFeedback = new Tuple<int, int>(posOfFirstModelInCurrentPermutation, posOfSecondModelInCurrentPermutation);
+
+                        if (posOfSecondModelInCurrentPermutation < posOfFirstModelInCurrentPermutation
+                            && !FindTuple(listOfFeedback, curentFeedback))
+                        {
+                            cntFeedBack++;
+                            listOfFeedback.Add(curentFeedback);
+                        }
+                    }
+                }
+                if (cntFeedBack < minCntFeedback)
+                {
+                    indexOfOptimalPermutation = j;
+                    minCntFeedback = cntFeedBack;
+                    cntOptimalPermutation = 1;
+                }
+                if (cntFeedBack == minCntFeedback)
+                    cntOptimalPermutation++;
+                listOfFeedback.Clear();
+            }
+            #endregion
+
+            tbOut.Text += "\nOptimal permutation:\n";
+            foreach (var index in listOfAllPermutations[indexOfOptimalPermutation])
+                tbOut.Text += "M" + (index + 1) + " ";
+            tbOut.Text += "\nCount feedback: " + minCntFeedback;
+            if (cntOptimalPermutation > 0)
+                tbOut.Text += "\nCount optimal permutation: " + cntOptimalPermutation;
+
+        }
+
+        private bool FindTuple(List<Tuple<int, int>> listOfFeedback, Tuple<int, int> curentFeedback)
+        {
+            foreach(var tup in listOfFeedback)
+                if (curentFeedback.Item1 == tup.Item1
+                    && curentFeedback.Item2 == tup.Item2)
+                    return true;
+            return false;
         }
 
         public int SumOfAllElements(int[,] array, int size)
@@ -646,7 +707,7 @@ namespace GKS
         {
             for (int i = 0; i < arrayOfGroupModels.Length; i++)
             {
-                tbOut.Text += "\nModels of " + (i + 1) + " group\n";
+                tbOut.Text += "\nModuls of " + (i + 1) + " group\n";
                 PrintModel(arrayOfGroupModels[i]);
             }
         }
@@ -655,7 +716,7 @@ namespace GKS
         {
             for (int p = 0; p < listOfModel.Count; p++)
             {
-                tbOut.Text += "Model " + (p + 1) + ": { ";
+                tbOut.Text += "M" + (p + 1) + ": { ";
                 foreach (var operation in listOfModel[p])
                     tbOut.Text += operation + " ";
                 tbOut.Text += "}\n";
@@ -799,6 +860,24 @@ namespace GKS
                 if (listOfModels[i].FindIndex(x => x == value) != -1 && blockIndex != i)
                     return i;
             return -1;
+        }
+
+        public int FindModel(List<List<string>> listOfModels, string operation)
+        {
+            for (int i = 0; i < listOfModels.Count; i++)
+                if (listOfModels[i].FindIndex(x => x == operation) != -1)
+                    return i;
+
+            return -1;
+        }
+
+        static IEnumerable<IEnumerable<T>> GetPermutations<T>(IEnumerable<T> list, int length)
+        {
+            if (length == 1) return list.Select(t => new T[] { t });
+
+            return GetPermutations(list, length - 1)
+                .SelectMany(t => list.Where(e => !t.Contains(e)),
+                    (t1, t2) => t1.Concat(new T[] { t2 }));
         }
     }
 }
